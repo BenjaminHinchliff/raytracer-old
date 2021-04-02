@@ -19,15 +19,9 @@
 #ifndef INCLUDED_RAY_IMG_UTILS_H
 #define INCLUDED_RAY_IMG_UTILS_H
 
-#include <stdbool.h>
+#include "color.h"
 
-// NOTE: must be safe to cast to unsigned char**
-// for writing
-typedef struct RayColor {
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-} RayColor;
+#include <stdbool.h>
 
 // width must be greater than zero
 // height must be greater than zero
