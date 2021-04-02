@@ -16,8 +16,8 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_IMG_UTILS_H
-#define INCLUDED_IMG_UTILS_H
+#ifndef INCLUDED_RAY_IMG_UTILS_H
+#define INCLUDED_RAY_IMG_UTILS_H
 
 #include <assert.h>
 #include <stdbool.h>
@@ -51,4 +51,4 @@ void ray_set_pixel(int x, int y, const RayColor color, RayImg *img);
 
 bool ray_png_write(char const *filename, const RayImg *img);
 
-#endif // ifndef INCLUDED_IMG_UTILS_H
+#endif // ifndef INCLUDED_RAY_IMG_UTILS_H
