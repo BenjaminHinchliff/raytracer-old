@@ -18,6 +18,10 @@
 
 #include "img_utils.h"
 
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "png.h" // png_*
 
 RayImg *ray_create_img(int width, int height, int channels) {

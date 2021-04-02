@@ -19,10 +19,7 @@
 #ifndef INCLUDED_RAY_IMG_UTILS_H
 #define INCLUDED_RAY_IMG_UTILS_H
 
-#include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
 
 // NOTE: must be safe to cast to unsigned char**
 // for writing
