@@ -22,10 +22,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "img_utils.h" // RayImg RayColor ray_create_img ray_png_write ray_free_img
+#include "ray/img_utils.h" // RayImg RayColor ray_create_img ray_png_write ray_free_img
 
-#include "gsl/gsl_vector.h"
 #include "gsl/gsl_blas.h"
+#include "gsl/gsl_vector.h"
 
 int main(int argc, char **argv) {
   // create image

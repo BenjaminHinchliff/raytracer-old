@@ -16,7 +16,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "img_utils.h"
+#include "ray/img_utils.h"
 
 #include <assert.h>
 #include <stdlib.h>
