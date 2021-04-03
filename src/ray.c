@@ -40,7 +40,7 @@ RayRay *ray_create_ray(gsl_vector *origin, gsl_vector *direction) {
 RayRay *ray_create_prime_ray(int x, int y, const RayScene *const scene) {
   double fov_rad = scene->fov * M_PI / 180.0;
   double fov_adjust = tan(fov_rad / 2.0);
-  double aspect_ratio = scene->width / scene->height;
+  double aspect_ratio = (double)scene->width / (double)scene->height;
   double sensor_x = (((((double)x + 0.5) / (double)scene->width) * 2.0 - 1.0) *
                      aspect_ratio) *
                     fov_adjust;
