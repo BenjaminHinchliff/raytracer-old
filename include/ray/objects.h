@@ -23,11 +23,10 @@
 
 #include "gsl/gsl_vector.h"
 
-struct RaySphere
-{
-    gsl_vector *center;
-    double radius;
-    RayColor color;
+struct RaySphere {
+  gsl_vector *center;
+  double radius;
+  RayColor color;
 };
 
 #endif // ifndef INCLUDED_RAY_OBJECTS_H
