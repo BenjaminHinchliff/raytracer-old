@@ -1,3 +1,4 @@
+#include "ray/render.h"
 #include "ray/scene.h"
 #include "ray/vec_utils.h"
 
@@ -10,6 +11,8 @@ int main() {
                                             .b = 102,
                                         });
   RayScene *scene = ray_create_scene(800, 600, 90.0, sphere);
+  RayImg *img = ray_render_scene(scene);
+  ray_png_write("raytraced.png", img);
 
   return 0;
 }

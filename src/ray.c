@@ -51,4 +51,24 @@ RayRay *ray_create_prime_ray(int x, int y, const RayScene *const scene) {
   gsl_vector *direction = ray_create_vec3(sensor_x, sensor_y, -1.0);
   double inverse_length = 1.0 / gsl_blas_dnrm2(direction);
   gsl_vector_scale(direction, inverse_length);
+  RayRay *ray = malloc(sizeof *ray);
+  RayRay tmpRay = {
+      .origin = origin,
+      .direction = direction,
+  };
+  memcpy(ray, &tmpRay, sizeof *ray);
+  return ray;
+}
+
+bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray) {
+  gsl_vector *l = gsl_vector_alloc(3);
+  gsl_vector_memcpy(l, sphere->center);
+  gsl_vector_sub(l, ray->origin);
+  double adj2;
+  gsl_blas_ddot(l, ray->direction, &adj2);
+  double d2;
+  gsl_blas_ddot(l, l, &d2);
+  d2 -= (adj2 * adj2);
+  gsl_vector_free(l);
+  return d2 < (sphere->radius * sphere->radius);
 }

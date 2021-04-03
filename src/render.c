@@ -26,7 +26,12 @@ RayImg *ray_render_scene(const RayScene *scene) {
   for (int y = 0; y < scene->height; ++y) {
     for (int x = 0; x < scene->width; ++x) {
       RayRay *ray = ray_create_prime_ray(x, y, scene);
-      
+      if (ray_sphere_intersects(scene->sphere, ray)) {
+        ray_set_pixel(x, y, scene->sphere->color, img);
+      } else {
+        ray_set_pixel(x, y, black, img);
+      }
     }
   }
+  return img;
 }

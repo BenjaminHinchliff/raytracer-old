@@ -19,6 +19,7 @@
 #ifndef INCLUDED_RAY_RAY_H
 #define INCLUDED_RAY_RAY_H
 
+#include "ray.h"
 #include "scene.h"
 
 #include "gsl/gsl_vector.h"
@@ -31,5 +32,6 @@ typedef struct RayRay {
 RayRay *ray_create_ray(gsl_vector *origin, gsl_vector *direction);
 
 RayRay *ray_create_prime_ray(int x, int y, const RayScene *scene);
+bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray);
 
 #endif // ifndef INCLUDED_RAY_RAY_H

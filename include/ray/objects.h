@@ -19,9 +19,11 @@
 #ifndef INCLUDED_RAY_OBJECTS_H
 #define INCLUDED_RAY_OBJECTS_H
 
-#include "color.h"
+#include <stdbool.h>
 
 #include "gsl/gsl_vector.h"
+
+#include "color.h"
 
 typedef struct RaySphere {
   gsl_vector *center;

@@ -20,6 +20,8 @@
 
 #include <assert.h>
 
+#include "gsl/gsl_blas.h"
+
 RaySphere *ray_create_sphere(gsl_vector *center, double radius,
                              RayColor color) {
   assert(center->size == 3 && "center must be vec3");
@@ -31,3 +33,5 @@ RaySphere *ray_create_sphere(gsl_vector *center, double radius,
   };
   return sphere;
 }
+
+
