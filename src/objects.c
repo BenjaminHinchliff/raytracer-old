@@ -16,19 +16,18 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_RAY_OBJECTS_H
-#define INCLUDED_RAY_OBJECTS_H
+#include "ray/objects.h"
 
-#include "color.h"
+#include <assert.h>
 
-#include "gsl/gsl_vector.h"
-
-typedef struct RaySphere {
-  gsl_vector *center;
-  double radius;
-  RayColor color;
-} RaySphere;
-
-RaySphere *ray_create_sphere(gsl_vector *center, double radius, RayColor color);
-
-#endif // ifndef INCLUDED_RAY_OBJECTS_H
+RaySphere *ray_create_sphere(gsl_vector *center, double radius,
+                             RayColor color) {
+  assert(center->size == 3 && "center must be vec3");
+  RaySphere *sphere = malloc(sizeof *sphere);
+  *sphere = (RaySphere){
+      .center = center,
+      .radius = radius,
+      .color = color,
+  };
+  return sphere;
+}

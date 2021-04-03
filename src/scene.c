@@ -16,19 +16,15 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_RAY_OBJECTS_H
-#define INCLUDED_RAY_OBJECTS_H
+#include "ray/scene.h"
 
-#include "color.h"
-
-#include "gsl/gsl_vector.h"
-
-typedef struct RaySphere {
-  gsl_vector *center;
-  double radius;
-  RayColor color;
-} RaySphere;
-
-RaySphere *ray_create_sphere(gsl_vector *center, double radius, RayColor color);
-
-#endif // ifndef INCLUDED_RAY_OBJECTS_H
+RayScene *ray_create_scene(int width, int height, double fov, RaySphere *sphere) {
+  RayScene *scene = malloc(sizeof *scene);
+  *scene = (RayScene){
+    .width = width,
+    .height = height,
+    .fov = fov,
+    .sphere = sphere,
+  };
+  return scene;
+}

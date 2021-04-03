@@ -16,19 +16,12 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_RAY_OBJECTS_H
-#define INCLUDED_RAY_OBJECTS_H
+#include "ray/vec_utils.h"
 
-#include "color.h"
-
-#include "gsl/gsl_vector.h"
-
-typedef struct RaySphere {
-  gsl_vector *center;
-  double radius;
-  RayColor color;
-} RaySphere;
-
-RaySphere *ray_create_sphere(gsl_vector *center, double radius, RayColor color);
-
-#endif // ifndef INCLUDED_RAY_OBJECTS_H
+gsl_vector *ray_create_vec3(double x, double y, double z) {
+  gsl_vector *vec = gsl_vector_alloc(3);
+  gsl_vector_set(vec, 0, x);
+  gsl_vector_set(vec, 0, y);
+  gsl_vector_set(vec, 0, z);
+  return vec;
+}

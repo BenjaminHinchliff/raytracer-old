@@ -1,7 +1,8 @@
 set(HDRS
     "ray/img_utils.h"
     "ray/color.h"
-    "ray/objects.h")
+    "ray/objects.h"
+    "ray/scene.h")
 
 set(HDRS_PREFIX "../include/")
 
@@ -9,9 +10,11 @@ list(TRANSFORM HDRS PREPEND ${HDRS_PREFIX})
 
 set(SRCS
     "img_utils.c"
-    "main.c")
+    "vec_utils.c"
+    "objects.c"
+    "scene.c")
 
-add_executable(ray ${SRCS} ${HDRS})
+add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})
 
 find_package(PNG REQUIRED)
