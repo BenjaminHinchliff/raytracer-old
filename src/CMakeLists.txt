@@ -15,9 +15,9 @@ set(SRCS
     "img_utils.c"
     "vec_utils.c"
     "objects.c"
-    "scene.c"
     "ray.c"
-    "render.c")
+    "render.c"
+    "scene.c")
 
 add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})

@@ -18,13 +18,6 @@
 
 #include "ray/scene.h"
 
-RayScene *ray_create_scene(int width, int height, double fov, RaySphere *sphere) {
-  RayScene *scene = malloc(sizeof *scene);
-  *scene = (RayScene){
-    .width = width,
-    .height = height,
-    .fov = fov,
-    .sphere = sphere,
-  };
-  return scene;
+void ray_free_scene(RayScene scene) {
+  ray_free_sphere(scene.sphere);
 }

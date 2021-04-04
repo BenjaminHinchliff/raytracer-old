@@ -3,16 +3,27 @@
 #include "ray/vec_utils.h"
 
 int main() {
-  gsl_vector *center = ray_create_vec3(0.0, 0.0, -5.0);
-  RaySphere *sphere = ray_create_sphere(center, 1.0,
-                                        (RayColor){
-                                            .r = 102,
-                                            .g = 255,
-                                            .b = 102,
-                                        });
-  RayScene *scene = ray_create_scene(800, 600, 90.0, sphere);
+  RayScene scene = {
+      .width = 800,
+      .height = 600,
+      .fov = 90.0,
+      .sphere =
+          {
+              .center = ray_create_vec3(0.0, 0.0, -5.0),
+              .radius = 1.0,
+              .color =
+                  {
+                      .r = 102,
+                      .g = 255,
+                      .b = 102,
+                  },
+          },
+  };
   RayImg *img = ray_render_scene(scene);
+  ray_free_scene(scene);
+
   ray_png_write("raytraced.png", img);
+  ray_free_img(img);
 
   return 0;
 }

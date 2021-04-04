@@ -22,16 +22,6 @@
 
 #include "gsl/gsl_blas.h"
 
-RaySphere *ray_create_sphere(gsl_vector *center, double radius,
-                             RayColor color) {
-  assert(center->size == 3 && "center must be vec3");
-  RaySphere *sphere = malloc(sizeof *sphere);
-  *sphere = (RaySphere){
-      .center = center,
-      .radius = radius,
-      .color = color,
-  };
-  return sphere;
+void ray_free_sphere(RaySphere sphere) {
+  gsl_vector_free(sphere.center);
 }
-
-

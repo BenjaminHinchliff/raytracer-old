@@ -31,6 +31,6 @@ typedef struct RaySphere {
   RayColor color;
 } RaySphere;
 
-RaySphere *ray_create_sphere(gsl_vector *center, double radius, RayColor color);
+void ray_free_sphere(RaySphere sphere);
 
 #endif // ifndef INCLUDED_RAY_OBJECTS_H

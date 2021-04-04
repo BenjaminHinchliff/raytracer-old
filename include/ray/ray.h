@@ -29,9 +29,9 @@ typedef struct RayRay {
   gsl_vector *const direction;
 } RayRay;
 
-RayRay *ray_create_ray(gsl_vector *origin, gsl_vector *direction);
+void ray_ray_free(RayRay ray);
 
-RayRay *ray_create_prime_ray(int x, int y, const RayScene *scene);
-bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray);
+RayRay ray_create_prime_ray(int x, int y, RayScene scene);
+bool ray_sphere_intersects(RaySphere sphere, RayRay ray);
 
 #endif // ifndef INCLUDED_RAY_RAY_H
