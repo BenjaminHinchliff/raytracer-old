@@ -32,6 +32,5 @@ typedef struct RayRay {
 void ray_ray_free(RayRay ray);
 
 RayRay ray_create_prime_ray(int x, int y, RayScene scene);
-bool ray_sphere_intersects(RaySphere sphere, RayRay ray);
 
 #endif // ifndef INCLUDED_RAY_RAY_H

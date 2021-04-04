@@ -5,7 +5,8 @@ set(HDRS
     "ray/scene.h"
     "ray/ray.h"
     "ray/vec_utils.h"
-    "ray/render.h")
+    "ray/render.h"
+    "ray/intersect.h")
 
 set(HDRS_PREFIX "../include/")
 
@@ -17,7 +18,8 @@ set(SRCS
     "objects.c"
     "ray.c"
     "render.c"
-    "scene.c")
+    "scene.c"
+    "intersect.c")
 
 add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})

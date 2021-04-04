@@ -16,24 +16,12 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "ray/render.h"
+#ifndef INCLUDED_RAY_INTERSECT_H
+#define INCLUDED_RAY_INTERSECT_H
 
+#include "ray/objects.h"
 #include "ray/ray.h"
-#include "ray/intersect.h"
 
-RayImg *ray_render_scene(RayScene scene) {
-  RayImg *img = ray_create_img(scene.width, scene.height, 3);
-  RayColor black = {0, 0, 0};
-  for (int y = 0; y < scene.height; ++y) {
-    for (int x = 0; x < scene.width; ++x) {
-      RayRay ray = ray_create_prime_ray(x, y, scene);
-      if (ray_sphere_intersects(scene.sphere, ray)) {
-        ray_set_pixel(x, y, scene.sphere.color, img);
-      } else {
-        ray_set_pixel(x, y, black, img);
-      }
-      ray_ray_free(ray);
-    }
-  }
-  return img;
-}
+bool ray_sphere_intersects(RaySphere sphere, RayRay ray);
+
+#endif // ifndef INCLUDED_RAY_COLOR_H
