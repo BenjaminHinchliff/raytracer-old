@@ -28,15 +28,15 @@ void ray_ray_free(RayRay ray) {
   gsl_vector_free(ray.direction);
 }
 
-RayRay ray_create_prime_ray(int x, int y, RayScene scene) {
-  double fov_rad = scene.fov * M_PI / 180.0;
+RayRay ray_create_prime_ray(int x, int y, const RayScene *scene) {
+  double fov_rad = scene->fov * M_PI / 180.0;
   double fov_adjust = tan(fov_rad / 2.0);
-  double aspect_ratio = (double)scene.width / (double)scene.height;
-  double sensor_x =
-      (((((double)x + 0.5) / (double)scene.width) * 2.0 - 1.0) * aspect_ratio) *
-      fov_adjust;
+  double aspect_ratio = (double)scene->width / (double)scene->height;
+  double sensor_x = (((((double)x + 0.5) / (double)scene->width) * 2.0 - 1.0) *
+                     aspect_ratio) *
+                    fov_adjust;
   double sensor_y =
-      (1.0 - (((double)y + 0.5) / (double)scene.height) * 2.0) * fov_adjust;
+      (1.0 - (((double)y + 0.5) / (double)scene->height) * 2.0) * fov_adjust;
 
   gsl_vector *origin = gsl_vector_calloc(3);
   gsl_vector *direction = ray_create_vec3(sensor_x, sensor_y, -1.0);

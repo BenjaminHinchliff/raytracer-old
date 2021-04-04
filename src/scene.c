@@ -18,6 +18,8 @@
 
 #include "ray/scene.h"
 
-void ray_free_scene(RayScene scene) {
-  ray_free_sphere(scene.sphere);
+void ray_free_scene(RayScene *scene) {
+  for (int i = 0; i < scene->num_objects; ++i) {
+    ray_free_sphere(scene->objects[i]);
+  }
 }

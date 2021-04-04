@@ -25,12 +25,12 @@
 #include "gsl/gsl_vector.h"
 
 typedef struct RayRay {
-  gsl_vector *const origin;
-  gsl_vector *const direction;
+  gsl_vector *origin;
+  gsl_vector *direction;
 } RayRay;
 
 void ray_ray_free(RayRay ray);
 
-RayRay ray_create_prime_ray(int x, int y, RayScene scene);
+RayRay ray_create_prime_ray(int x, int y, const RayScene *scene);
 
 #endif // ifndef INCLUDED_RAY_RAY_H

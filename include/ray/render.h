@@ -22,6 +22,6 @@
 #include "img_utils.h"
 #include "scene.h"
 
-RayImg *ray_render_scene(RayScene scene);
+RayImg *ray_render_scene(const RayScene *scene);
 
 #endif // ifndef INCLUDED_RAY_RENDER_H
