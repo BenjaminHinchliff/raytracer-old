@@ -15,13 +15,23 @@ int main() {
               },
       },
       {
-          .center = ray_create_vec3(1.0, 0.0, -6.0),
-          .radius = 1.0,
+          .center = ray_create_vec3(-3.0, 1.0, -6.0),
+          .radius = 2.0,
+          .color =
+              {
+                  .r = 102,
+                  .g = 102,
+                  .b = 255,
+              },
+      },
+      {
+          .center = ray_create_vec3(2.0, 2.0, -4.0),
+          .radius = 2.25,
           .color =
               {
                   .r = 255,
-                  .g = 0,
-                  .b = 0,
+                  .g = 104,
+                  .b = 104,
               },
       },
   };

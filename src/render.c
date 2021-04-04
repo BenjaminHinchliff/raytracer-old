@@ -27,12 +27,12 @@ RayImg *ray_render_scene(const RayScene *scene) {
   for (int y = 0; y < scene->height; ++y) {
     for (int x = 0; x < scene->width; ++x) {
       RayRay ray = ray_create_prime_ray(x, y, scene);
-      for (int i = 0; i < scene->num_objects; ++i) {
-        if (ray_sphere_intersects(&scene->objects[i], &ray)) {
-          ray_set_pixel(x, y, scene->objects[i].color, img);
-        } else {
-          ray_set_pixel(x, y, black, img);
-        }
+      const RaySphere *intersection =
+          ray_closest_intersection(scene->objects, scene->num_objects, &ray);
+      if (intersection != NULL) {
+        ray_set_pixel(x, y, intersection->color, img);
+      } else {
+        ray_set_pixel(x, y, black, img);
       }
       ray_ray_free(ray);
     }
