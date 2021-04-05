@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "gsl/gsl_blas.h"
+
 bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray,
                            double *distance) {
   gsl_vector *l = gsl_vector_alloc(3);
