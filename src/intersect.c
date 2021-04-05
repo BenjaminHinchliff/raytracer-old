@@ -62,6 +62,7 @@ bool ray_plane_intersects(const RayObject *plane, const RayRay *ray,
     gsl_vector_sub(v, ray->origin);
     gsl_blas_ddot(v, plane->normal, distance);
     *distance /= denom;
+    gsl_vector_free(v);
     if (*distance >= 0.0) {
       return true;
     }
