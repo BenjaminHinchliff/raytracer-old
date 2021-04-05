@@ -27,7 +27,7 @@ RayImg *ray_render_scene(const RayScene *scene) {
   for (int y = 0; y < scene->height; ++y) {
     for (int x = 0; x < scene->width; ++x) {
       RayRay ray = ray_create_prime_ray(x, y, scene);
-      const RaySphere *intersection =
+      const RayObject *intersection =
           ray_closest_intersection(scene->objects, scene->num_objects, &ray);
       if (intersection != NULL) {
         ray_set_pixel(x, y, intersection->color, img);

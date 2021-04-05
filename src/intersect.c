@@ -22,7 +22,9 @@
 
 #include "gsl/gsl_blas.h"
 
-bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray,
+typedef bool (*intersect_fn)(const RayObject *, const RayRay *, double *);
+
+bool ray_sphere_intersects(const RayObject *sphere, const RayRay *ray,
                            double *distance) {
   gsl_vector *l = gsl_vector_alloc(3);
   gsl_vector_memcpy(l, sphere->center);
@@ -50,14 +52,48 @@ bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray,
   return true;
 }
 
-const RaySphere *ray_closest_intersection(const RaySphere *objects,
+bool ray_plane_intersects(const RayObject *plane, const RayRay *ray,
+                          double *distance) {
+  double denom;
+  gsl_blas_ddot(plane->normal, ray->direction, &denom);
+  if (denom > 1e-6) {
+    gsl_vector *v = gsl_vector_alloc(3);
+    gsl_vector_memcpy(v, plane->point);
+    gsl_vector_sub(v, ray->origin);
+    gsl_blas_ddot(v, plane->normal, distance);
+    *distance /= denom;
+    if (*distance >= 0.0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ray_error_intersect(const RayObject *plane, const RayRay *ray,
+                         double *distance) {
+  fprintf(stderr, "invalid type in intersection");
+  exit(1);
+}
+
+intersect_fn get_intersect_fn(enum RAY_OBJECT_TYPE t) {
+  return (t == RAY_OBJECT_TYPE_sphere)  ? ray_sphere_intersects
+         : (t == RAY_OBJECT_TYPE_plane) ? ray_plane_intersects
+                                        : ray_error_intersect;
+}
+
+bool ray_intersects(const RayObject *plane, const RayRay *ray,
+                    double *distance) {
+  get_intersect_fn(plane->type)(plane, ray, distance);
+}
+
+const RayObject *ray_closest_intersection(const RayObject *objects,
                                           int num_objects, const RayRay *ray) {
-  const RaySphere *closest = NULL;
-  double closest_distance = 0.0; // not read unless closest not null 
+  const RayObject *closest = NULL;
+  double closest_distance = 0.0; // not read unless closest not null
   for (int i = 0; i < num_objects; ++i) {
-    const RaySphere *object = &objects[i];
-    double distance;
-    bool intersects = ray_sphere_intersects(object, ray, &distance);
+    const RayObject *object = &objects[i];
+    double distance = 0.0;
+    bool intersects = ray_intersects(object, ray, &distance);
     if (intersects) {
       if (closest == NULL) {
         closest = object;

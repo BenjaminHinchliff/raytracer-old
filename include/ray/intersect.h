@@ -22,10 +22,10 @@
 #include "ray/objects.h"
 #include "ray/ray.h"
 
-bool ray_sphere_intersects(const RaySphere *sphere, const RayRay *ray,
-                           double *distance);
+bool ray_intersects(const RayObject *plane, const RayRay *ray,
+                    double *distance);
 
-const RaySphere *ray_closest_intersection(const RaySphere *objects,
+const RayObject *ray_closest_intersection(const RayObject *objects,
                                           int num_objects, const RayRay *ray);
 
 #endif // ifndef INCLUDED_RAY_COLOR_H

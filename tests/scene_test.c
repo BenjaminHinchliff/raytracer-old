@@ -4,14 +4,15 @@
 #include "ray/scene.h"
 #include "ray/vec_utils.h"
 
-#define NUM_OBJECTS 3
+#define NUM_OBJECTS 4
 
 int main() {
   // NOTE: using from the stack instead of malloc causes undefined behavior
   // so don't do that
-  RaySphere *objects = malloc(NUM_OBJECTS * (sizeof *objects));
-  RaySphere stackObjs[NUM_OBJECTS] = {
+  RayObject *objects = malloc(NUM_OBJECTS * (sizeof *objects));
+  RayObject stackObjs[NUM_OBJECTS] = {
       {
+          .type = RAY_OBJECT_TYPE_sphere,
           .center = ray_create_vec3(0.0, 0.0, -5.0),
           .radius = 1.0,
           .color =
@@ -22,6 +23,7 @@ int main() {
               },
       },
       {
+          .type = RAY_OBJECT_TYPE_sphere,
           .center = ray_create_vec3(-3.0, 1.0, -6.0),
           .radius = 2.0,
           .color =
@@ -32,11 +34,23 @@ int main() {
               },
       },
       {
+          .type = RAY_OBJECT_TYPE_sphere,
           .center = ray_create_vec3(2.0, 2.0, -4.0),
           .radius = 2.25,
           .color =
               {
                   .r = 255,
+                  .g = 102,
+                  .b = 102,
+              },
+      },
+      {
+          .type = RAY_OBJECT_TYPE_plane,
+          .point = ray_create_vec3(0.0, -2.0, 0.0),
+          .normal = ray_create_vec3(0.0, -1.0, 0.0),
+          .color =
+              {
+                  .r = 102,
                   .g = 102,
                   .b = 102,
               },

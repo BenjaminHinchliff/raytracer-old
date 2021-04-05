@@ -26,7 +26,7 @@ typedef struct RayScene {
   int height;
   double fov;
   int num_objects;
-  RaySphere *objects;
+  RayObject *objects;
 } RayScene;
 
 void ray_free_scene(RayScene *scene);

@@ -25,12 +25,26 @@
 
 #include "color.h"
 
-typedef struct RaySphere {
-  gsl_vector *center;
-  double radius;
-  RayColor color;
-} RaySphere;
+enum RAY_OBJECT_TYPE {
+  RAY_OBJECT_TYPE_sphere,
+  RAY_OBJECT_TYPE_plane,
+};
 
-void ray_free_sphere(RaySphere sphere);
+typedef struct RayObject {
+  enum RAY_OBJECT_TYPE type;
+  union {
+    struct { // type = sphere
+      gsl_vector *center;
+      double radius;
+    };
+    struct { // type = plane
+      gsl_vector *point;
+      gsl_vector *normal;
+    };
+  };
+  RayColor color;
+} RayObject;
+
+void ray_free_object(RayObject sphere);
 
 #endif // ifndef INCLUDED_RAY_OBJECTS_H
