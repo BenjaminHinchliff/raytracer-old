@@ -16,11 +16,11 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
+#ifndef INCLUDED_RAY_LOADER_H
+#define INCLUDED_RAY_LOADER_H
+
 #include "ray/scene.h"
 
-void ray_free_scene(RayScene *scene) {
-  for (int i = 0; i < scene->num_objects; ++i) {
-    ray_free_sphere(scene->objects[i]);
-  }
-  free(scene->objects);
-}
+bool ray_scene_from_file(const char *path, RayScene *scene);
+
+#endif // ifndef INCLUDED_RAY_LOADER_H
