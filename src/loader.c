@@ -266,6 +266,11 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
     return false;
   }
 
+  gsl_vector *background = get_obj_rgb(root, "background");
+  if (background == NULL) {
+    return false;
+  }
+
   int num_objects;
   RayObject *objects = get_scene_objects(root, &num_objects);
   if (objects == NULL) {
@@ -282,6 +287,7 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
       .width = width,
       .height = height,
       .fov = fov,
+      .background = background,
       .num_objects = num_objects,
       .objects = objects,
       .light = light,

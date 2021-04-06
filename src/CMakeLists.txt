@@ -31,7 +31,7 @@ set(SRCS
 add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})
 
-# libm preferred
+# libm preferred if it exists
 include(CheckLibraryExists)
 check_library_exists(m tan "" LIBM)
 if(LIBM)

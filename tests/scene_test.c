@@ -57,6 +57,7 @@ int main() {
       .width = 800,
       .height = 600,
       .fov = 90.0,
+      .background = ray_create_vec3(0.73, 0.92, 1.0),
       .num_objects = NUM_OBJECTS,
       .objects = objects,
       .light =

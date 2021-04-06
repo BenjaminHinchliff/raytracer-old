@@ -26,6 +26,7 @@ typedef struct RayScene {
   int width;
   int height;
   double fov;
+  gsl_vector *background;
   int num_objects;
   RayObject *objects;
   RayLight light;

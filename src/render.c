@@ -99,8 +99,9 @@ RayImg *ray_render_scene(const RayScene *scene) {
         ray_vec_clamp(color);
         ray_set_pixel(x, y, color, img);
       } else {
-        gsl_vector *black = ray_create_vec3(0.0, 0.0, 0.0);
-        ray_set_pixel(x, y, black, img);
+        gsl_vector *background = gsl_vector_alloc(3);
+        gsl_vector_memcpy(background, scene->background); 
+        ray_set_pixel(x, y, background, img);
       }
       ray_ray_free(ray);
     }

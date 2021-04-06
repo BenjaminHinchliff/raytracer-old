@@ -19,6 +19,7 @@
 #include "ray/scene.h"
 
 void ray_free_scene(RayScene *scene) {
+  gsl_vector_free(scene->background);
   for (int i = 0; i < scene->num_objects; ++i) {
     ray_free_object(scene->objects[i]);
   }

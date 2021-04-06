@@ -2,6 +2,11 @@
   "width": 800,
   "height": 600,
   "fov": 90.0,
+  "background": {
+    "r": 0.73,
+    "g": 0.92,
+    "b": 1.0
+  },
   "objects": [
     {
       "sphere": {
