@@ -100,6 +100,7 @@ RayImg *ray_render_scene(const RayScene *scene) {
           gsl_vector_scale(part_color, light_reflected);
           // add to net color
           gsl_vector_add(color, part_color);
+          gsl_vector_free(part_color);
         }
 
         gsl_vector_free(surface_normal);

@@ -23,8 +23,9 @@ void ray_free_scene(RayScene *scene) {
   for (int i = 0; i < scene->num_objects; ++i) {
     ray_free_object(&scene->objects[i]);
   }
+  free(scene->objects);
   for (int i = 0; i < scene->num_lights; ++i) {
     ray_free_light(&scene->lights[i]);
   }
-  free(scene->objects);
+  free(scene->lights);
 }
