@@ -214,12 +214,7 @@ static RayObject *get_scene_objects(json_object *source, int *num_objects) {
   return objects;
 }
 
-static bool get_scene_light(json_object *source, RayLight *light) {
-  json_object *light_obj = json_object_object_get(source, "light");
-  if (light_obj == NULL) {
-    return false;
-  }
-
+static bool get_scene_light(json_object *light_obj, RayLight *light) {
   gsl_vector *direction = get_obj_vec3(light_obj, "direction");
   if (direction == NULL) {
     return false;
@@ -243,6 +238,26 @@ static bool get_scene_light(json_object *source, RayLight *light) {
   };
 
   return true;
+}
+
+static RayLight *get_scene_lights(json_object *source, int *num_lights) {
+  json_object *lights_obj = json_object_object_get(source, "lights");
+  if (lights_obj == NULL) {
+    return NULL;
+  }
+
+  *num_lights = json_object_array_length(lights_obj);
+  RayLight *lights = malloc(*num_lights * (sizeof *lights));
+  for (int i = 0; i < *num_lights; ++i) {
+    json_object *light_obj = json_object_array_get_idx(lights_obj, i);
+    RayLight light;
+    bool success = get_scene_light(light_obj, &light);
+    if (!success) {
+      return NULL;
+    }
+    lights[i] = light;
+  }
+  return lights;
 }
 
 bool ray_scene_from_file(const char *path, RayScene *scene) {
@@ -277,9 +292,9 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
     return false;
   }
 
-  RayLight light;
-  success = get_scene_light(root, &light);
-  if (!success) {
+  int num_lights;
+  RayLight *lights = get_scene_lights(root, &num_lights);
+  if (lights == NULL) {
     return false;
   }
 
@@ -290,7 +305,8 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
       .background = background,
       .num_objects = num_objects,
       .objects = objects,
-      .light = light,
+      .num_lights = num_lights,
+      .lights = lights,
   };
   json_object_put(root);
   return true;

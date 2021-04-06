@@ -19,8 +19,8 @@
 #ifndef INCLUDED_RAY_SCENE_H
 #define INCLUDED_RAY_SCENE_H
 
-#include "objects.h"
 #include "light.h"
+#include "objects.h"
 
 typedef struct RayScene {
   int width;
@@ -29,7 +29,8 @@ typedef struct RayScene {
   gsl_vector *background;
   int num_objects;
   RayObject *objects;
-  RayLight light;
+  int num_lights;
+  RayLight *lights;
 } RayScene;
 
 void ray_free_scene(RayScene *scene);

@@ -22,16 +22,16 @@
 
 #include "gsl/gsl_blas.h"
 
-typedef void (*obj_free_fn)(RayObject);
+typedef void (*obj_free_fn)(RayObject *);
 
-void free_sphere(RayObject sphere) { gsl_vector_free(sphere.center); }
+void free_sphere(RayObject *sphere) { gsl_vector_free(sphere->center); }
 
-void free_plane(RayObject plane) {
-  gsl_vector_free(plane.point);
-  gsl_vector_free(plane.normal);
+void free_plane(RayObject *plane) {
+  gsl_vector_free(plane->point);
+  gsl_vector_free(plane->normal);
 }
 
-void free_error(RayObject err) {
+void free_error(RayObject *err) {
   fprintf(stderr, "invalid object free");
   exit(1);
 }
@@ -42,7 +42,7 @@ obj_free_fn get_obj_free_fn(enum RAY_OBJECT_TYPE t) {
                                         : free_error;
 }
 
-void ray_free_object(RayObject sphere) {
-  get_obj_free_fn(sphere.type)(sphere);
-  ray_free_material(&sphere.material);
+void ray_free_object(RayObject *sphere) {
+  get_obj_free_fn(sphere->type)(sphere);
+  ray_free_material(&sphere->material);
 }

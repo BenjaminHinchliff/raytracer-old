@@ -60,12 +60,12 @@ int main() {
       .background = ray_create_vec3(0.73, 0.92, 1.0),
       .num_objects = NUM_OBJECTS,
       .objects = objects,
-      .light =
-          {
-              .direction = ray_create_vec3(-0.25, -1.0, -1.0),
-              .color = ray_create_vec3(1.0, 1.0, 1.0),
-              .intensity = 20.0,
-          },
+    //   .light =
+    //       {
+    //           .direction = ray_create_vec3(-0.25, -1.0, -1.0),
+    //           .color = ray_create_vec3(1.0, 1.0, 1.0),
+    //           .intensity = 20.0,
+    //       },
   };
   RayImg *img = ray_render_scene(&scene);
   ray_free_scene(&scene);

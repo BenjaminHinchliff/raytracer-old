@@ -45,6 +45,6 @@ typedef struct RayObject {
   RayMaterial material;
 } RayObject;
 
-void ray_free_object(RayObject sphere);
+void ray_free_object(RayObject *sphere);
 
 #endif // ifndef INCLUDED_RAY_OBJECTS_H
