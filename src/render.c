@@ -20,18 +20,27 @@
 
 #include "ray/intersect.h"
 #include "ray/ray.h"
+#include "ray/vec_utils.h"
 
 RayImg *ray_render_scene(const RayScene *scene) {
   RayImg *img = ray_create_img(scene->width, scene->height, 3);
-  RayColor black = {0, 0, 0};
   for (int y = 0; y < scene->height; ++y) {
     for (int x = 0; x < scene->width; ++x) {
       RayRay ray = ray_create_prime_ray(x, y, scene);
-      const RayObject *intersection =
-          ray_closest_intersection(scene->objects, scene->num_objects, &ray);
+      double distance = 0.0;
+      const RayObject *intersection = ray_closest_intersection(
+          scene->objects, scene->num_objects, &ray, &distance);
       if (intersection != NULL) {
-        ray_set_pixel(x, y, intersection->color, img);
+        gsl_vector *hit_point = gsl_vector_alloc(3);
+        gsl_vector_memcpy(hit_point, ray.direction);
+        gsl_vector_scale(hit_point, distance);
+        gsl_vector_add(hit_point, ray.origin);
+
+        gsl_vector *color = gsl_vector_alloc(3);
+        gsl_vector_memcpy(color, intersection->material.color);
+        ray_set_pixel(x, y, color, img);
       } else {
+        gsl_vector *black = ray_create_vec3(0.0, 0.0, 0.0);
         ray_set_pixel(x, y, black, img);
       }
       ray_ray_free(ray);

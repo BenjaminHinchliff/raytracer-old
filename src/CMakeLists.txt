@@ -1,6 +1,5 @@
 set(HDRS
     "ray/img_utils.h"
-    "ray/color.h"
     "ray/objects.h"
     "ray/scene.h"
     "ray/ray.h"

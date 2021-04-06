@@ -24,6 +24,7 @@
 
 #include "json-c/json.h"
 
+#include "ray/material.h"
 #include "ray/vec_utils.h"
 
 static bool get_root_int(json_object *root, const char *key, int *val) {
@@ -52,84 +53,90 @@ static bool get_obj_double(json_object *root, const char *key, double *val) {
   return true;
 }
 
-static bool get_obj_color_comp(json_object *obj, const char *key,
-                               unsigned char *comp) {
-  int val;
-  bool success = get_root_int(obj, key, &val);
-  if (!success || val < 0 || val > UCHAR_MAX) {
-    return false;
+static gsl_vector *get_obj_vec3(json_object *obj, const char *key) {
+  json_object *vec3_obj = json_object_object_get(obj, key);
+  if (vec3_obj == NULL) {
+    return NULL;
   }
-  *comp = val;
-  return true;
+  double x;
+  bool success = get_obj_double(vec3_obj, "x", &x);
+  if (!success) {
+    return NULL;
+  }
+  double y;
+  success = get_obj_double(vec3_obj, "y", &y);
+  if (!success) {
+    return NULL;
+  }
+  double z;
+  success = get_obj_double(vec3_obj, "z", &z);
+  if (!success) {
+    return NULL;
+  }
+  return ray_create_vec3(x, y, z);
 }
 
-static bool get_obj_color(json_object *obj, const char *key, RayColor *color) {
-  json_object *color_obj = json_object_object_get(obj, key);
-  if (color_obj == NULL) {
-    return false;
+static gsl_vector *get_obj_rgb(json_object *obj, const char *key) {
+  json_object *vec3_obj = json_object_object_get(obj, key);
+  if (vec3_obj == NULL) {
+    return NULL;
   }
-  unsigned char r;
-  bool success = get_obj_color_comp(color_obj, "r", &r);
+  double r;
+  bool success = get_obj_double(vec3_obj, "r", &r);
   if (!success) {
-    return false;
+    return NULL;
   }
-  unsigned char g;
-  success = get_obj_color_comp(color_obj, "g", &g);
+  double g;
+  success = get_obj_double(vec3_obj, "g", &g);
   if (!success) {
+    return NULL;
+  }
+  double b;
+  success = get_obj_double(vec3_obj, "b", &b);
+  if (!success) {
+    return NULL;
+  }
+  return ray_create_vec3(r, g, b);
+}
+
+static bool get_obj_material(json_object *obj, RayMaterial *material) {
+  json_object *material_obj = json_object_object_get(obj, "material");
+  if (material_obj == NULL) {
     return false;
   }
-  unsigned char b;
-  success = get_obj_color_comp(color_obj, "b", &b);
+
+  gsl_vector *color = get_obj_rgb(material_obj, "color");
+  if (color == NULL) {
+    return false;
+  }
+
+  double albedo;
+  bool success = get_obj_double(material_obj, "albedo", &albedo);
   if (!success) {
     return false;
   }
 
-  *color = (RayColor){
-      .r = r,
-      .g = g,
-      .b = b,
+  *material = (RayMaterial){
+      .color = color,
+      .albedo = albedo,
   };
 
   return true;
 }
 
-static bool get_obj_vec3(json_object *obj, const char *key, gsl_vector **vec) {
-  json_object *vec3_obj = json_object_object_get(obj, key);
-  if (vec3_obj == NULL) {
-    return false;
-  }
-  double x;
-  bool success = get_obj_double(vec3_obj, "x", &x);
-  if (!success) {
-    return false;
-  }
-  double y;
-  success = get_obj_double(vec3_obj, "y", &y);
-  if (!success) {
-    return false;
-  }
-  double z;
-  success = get_obj_double(vec3_obj, "z", &z);
-  if (!success) {
-    return false;
-  }
-  *vec = ray_create_vec3(x, y, z);
-  return true;
-}
-
 static bool get_obj_sphere(json_object *sphere_obj, RayObject *sphere) {
-  gsl_vector *center;
-  bool success = get_obj_vec3(sphere_obj, "center", &center);
-  if (!success) {
+  gsl_vector *center = get_obj_vec3(sphere_obj, "center");
+  if (center == NULL) {
     return false;
   }
   double radius;
-  success = get_obj_double(sphere_obj, "radius", &radius);
+  bool success = get_obj_double(sphere_obj, "radius", &radius);
   if (!success) {
     return false;
   }
-  RayColor color;
-  success = get_obj_color(sphere_obj, "color", &color);
+
+  RayMaterial material;
+  success = get_obj_material(sphere_obj, &material);
   if (!success) {
     return false;
   }
@@ -138,26 +145,24 @@ static bool get_obj_sphere(json_object *sphere_obj, RayObject *sphere) {
       .type = RAY_OBJECT_TYPE_sphere,
       .center = center,
       .radius = radius,
-      .color = color,
+      .material = material,
   };
   return true;
 }
 
 static bool get_obj_plane(json_object *plane_obj, RayObject *plane) {
-  gsl_vector *point;
-  bool success = get_obj_vec3(plane_obj, "point", &point);
-  if (!success) {
+  gsl_vector *point = get_obj_vec3(plane_obj, "point");
+  if (point == NULL) {
     return false;
   }
 
-  gsl_vector *normal;
-  success = get_obj_vec3(plane_obj, "normal", &normal);
-  if (!success) {
+  gsl_vector *normal = get_obj_vec3(plane_obj, "normal");
+  if (normal == NULL) {
     return false;
   }
 
-  RayColor color;
-  success = get_obj_color(plane_obj, "color", &color);
+  RayMaterial material;
+  bool success = get_obj_material(plane_obj, &material);
   if (!success) {
     return false;
   }
@@ -166,8 +171,59 @@ static bool get_obj_plane(json_object *plane_obj, RayObject *plane) {
       .type = RAY_OBJECT_TYPE_plane,
       .point = point,
       .normal = normal,
-      .color = color,
+      .material = material,
   };
+
+  return true;
+}
+
+static bool get_scene_object(json_object *source, RayObject *object) {
+  json_object *sphere_obj = json_object_object_get(source, "sphere");
+  if (sphere_obj != NULL) {
+    return get_obj_sphere(sphere_obj, object);
+  }
+  json_object *plane_obj = json_object_object_get(source, "plane");
+  if (plane_obj != NULL) {
+    return get_obj_plane(plane_obj, object);
+  }
+  return false;
+}
+
+static RayObject *get_scene_objects(json_object *source, int *num_objects) {
+  json_object *objects_obj = json_object_object_get(source, "objects");
+  if (objects_obj == NULL ||
+      !json_object_is_type(objects_obj, json_type_array)) {
+    return NULL;
+  }
+  *num_objects = json_object_array_length(objects_obj);
+  RayObject *objects = malloc(*num_objects * (sizeof *objects));
+  for (int i = 0; i < *num_objects; ++i) {
+    json_object *object_obj = json_object_array_get_idx(objects_obj, i);
+    if (object_obj == NULL) {
+      return NULL;
+    }
+
+    RayObject object;
+    bool success = get_scene_object(object_obj, &object);
+    if (!success) {
+      return NULL;
+    }
+
+    objects[i] = object;
+  }
+  return objects;
+}
+
+static bool get_scene_light(json_object *source, RayLight *light) {
+  json_object *light_obj = json_object_object_get(source, "light");
+  if (light_obj == NULL) {
+    return false;
+  }
+
+  gsl_vector *direction = get_obj_vec3(light_obj, "direction");
+  if (direction == NULL) {
+    return false;
+  }
 
   return true;
 }
@@ -192,43 +248,13 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
   if (!success) {
     return false;
   }
-  json_object *objects_obj = json_object_object_get(root, "objects");
-  if (objects_obj == NULL ||
-      !json_object_is_type(objects_obj, json_type_array)) {
+
+  int num_objects;
+  RayObject *objects = get_scene_objects(root, &num_objects);
+  if (objects == NULL) {
     return false;
   }
-  int num_objects = json_object_array_length(objects_obj);
-  RayObject *objects = malloc(num_objects * (sizeof *objects));
-  for (int i = 0; i < num_objects; ++i) {
-    json_object *object_obj = json_object_array_get_idx(objects_obj, i);
-    if (object_obj == NULL) {
-      return false;
-    }
-    bool object_found = false;
-    RayObject object;
-    json_object *sphere_obj = json_object_object_get(object_obj, "sphere");
-    if (sphere_obj != NULL) {
-      bool success = get_obj_sphere(sphere_obj, &object);
-      if (!success) {
-        return false;
-      }
-      object_found = true;
-    }
-    json_object *plane_obj = json_object_object_get(object_obj, "plane");
-    if (plane_obj != NULL) {
-      bool success = get_obj_plane(plane_obj, &object);
-      if (!success) {
-        return false;
-      }
-      object_found = true;
-    }
 
-    if (!object_found) {
-      return false;
-    }
-
-    objects[i] = object;
-  }
   *scene = (RayScene){
       .width = width,
       .height = height,

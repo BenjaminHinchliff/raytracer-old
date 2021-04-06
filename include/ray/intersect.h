@@ -26,6 +26,7 @@ bool ray_intersects(const RayObject *plane, const RayRay *ray,
                     double *distance);
 
 const RayObject *ray_closest_intersection(const RayObject *objects,
-                                          int num_objects, const RayRay *ray);
+                                          int num_objects, const RayRay *ray,
+                                          double *distance);
 
 #endif // ifndef INCLUDED_RAY_COLOR_H

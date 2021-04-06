@@ -88,7 +88,8 @@ bool ray_intersects(const RayObject *plane, const RayRay *ray,
 }
 
 const RayObject *ray_closest_intersection(const RayObject *objects,
-                                          int num_objects, const RayRay *ray) {
+                                          int num_objects, const RayRay *ray,
+                                          double *ret_distance) {
   const RayObject *closest = NULL;
   double closest_distance = 0.0; // not read unless closest not null
   for (int i = 0; i < num_objects; ++i) {
@@ -105,5 +106,6 @@ const RayObject *ray_closest_intersection(const RayObject *objects,
       }
     }
   }
+  *ret_distance = closest_distance;
   return closest;
 }

@@ -23,7 +23,7 @@
 
 #include "gsl/gsl_vector.h"
 
-#include "color.h"
+#include "material.h"
 
 enum RAY_OBJECT_TYPE {
   RAY_OBJECT_TYPE_sphere,
@@ -42,7 +42,7 @@ typedef struct RayObject {
       gsl_vector *normal;
     };
   };
-  RayColor color;
+  RayMaterial material;
 } RayObject;
 
 void ray_free_object(RayObject sphere);

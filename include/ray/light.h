@@ -16,15 +16,15 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_RAY_COLOR_H
-#define INCLUDED_RAY_COLOR_H
+#ifndef INCLUDED_RAY_LIGHT_H
+#define INCLUDED_RAY_LIGHT_H
 
-// NOTE: must be safe to cast to unsigned char**
-// for writing
-typedef struct RayColor {
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-} RayColor;
+#include "gsl/gsl_vector.h"
 
-#endif // ifndef INCLUDED_RAY_COLOR_H
+typedef struct RayLight {
+  gsl_vector *direction;
+  gsl_vector *color;
+  double intensity;
+} RayLight;
+
+#endif // ifndef INCLUDED_RAY_LIGHT_H

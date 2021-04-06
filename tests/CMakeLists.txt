@@ -10,3 +10,7 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/scene.json
   ${CMAKE_CURRENT_BINARY_DIR}/scene.json
   COPYONLY)
+
+add_executable(image_test "image_test.c")
+target_link_libraries(image_test PUBLIC ray)
+add_test(image_test image_test)

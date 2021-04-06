@@ -16,21 +16,12 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#ifndef INCLUDED_RAY_SCENE_H
-#define INCLUDED_RAY_SCENE_H
+#ifndef INCLUDED_RAY_MATERIAL_H
+#define INCLUDED_RAY_MATERIAL_H
 
-#include "objects.h"
-#include "light.h"
+typedef struct RayMaterial {
+  gsl_vector *color;
+  double albedo;
+} RayMaterial;
 
-typedef struct RayScene {
-  int width;
-  int height;
-  double fov;
-  int num_objects;
-  RayObject *objects;
-  RayLight light;
-} RayScene;
-
-void ray_free_scene(RayScene *scene);
-
-#endif // ifndef INCLUDED_RAY_SCENE_H
+#endif // ifndef INCLUDED_RAY_MATERIAL_H
