@@ -106,6 +106,8 @@ const RayObject *ray_closest_intersection(const RayObject *objects,
       }
     }
   }
-  *ret_distance = closest_distance;
+  if (ret_distance != NULL) {
+    *ret_distance = closest_distance;
+  }
   return closest;
 }
