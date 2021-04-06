@@ -16,21 +16,8 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "ray/vec_utils.h"
+#include "ray/material.h"
 
-gsl_vector *ray_create_vec3(double x, double y, double z) {
-  gsl_vector *vec = gsl_vector_alloc(3);
-  gsl_vector_set(vec, 0, x);
-  gsl_vector_set(vec, 1, y);
-  gsl_vector_set(vec, 2, z);
-  return vec;
-}
-
-void ray_vec_clamp(gsl_vector *vec) {
-  for (size_t i = 0; i < vec->size; ++i) {
-    double comp = gsl_vector_get(vec, i);
-    comp = comp < 0.0 ? 0.0 : comp;
-    comp = comp > 1.0 ? 1.0 : comp;
-    gsl_vector_set(vec, i, comp);
-  }
+void ray_free_material(RayMaterial *material) {
+  gsl_vector_free(material->color);
 }

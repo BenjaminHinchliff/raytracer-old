@@ -18,7 +18,11 @@
 
 #include "ray/render.h"
 
+#include "gsl/gsl_blas.h"
+#include "gsl/gsl_math.h"
+
 #include "ray/intersect.h"
+#include "ray/normal.h"
 #include "ray/ray.h"
 #include "ray/vec_utils.h"
 
@@ -35,9 +39,25 @@ RayImg *ray_render_scene(const RayScene *scene) {
         gsl_vector_memcpy(hit_point, ray.direction);
         gsl_vector_scale(hit_point, distance);
         gsl_vector_add(hit_point, ray.origin);
+        gsl_vector *surface_normal =
+            ray_surface_normal(intersection, hit_point);
+        gsl_vector_free(hit_point);
+        gsl_vector *light_direction = gsl_vector_alloc(3);
+        gsl_vector_memcpy(light_direction, scene->light.direction);
+        gsl_vector_scale(light_direction, -1.0);
+        double light_power = 0.0;
+        gsl_blas_ddot(surface_normal, light_direction, &light_power);
+        light_power = light_power < 0.0 ? 0.0 : light_power;
+        light_power *= scene->light.intensity;
+        gsl_vector_free(light_direction);
+        double light_reflected = intersection->material.albedo / M_PI;
 
         gsl_vector *color = gsl_vector_alloc(3);
         gsl_vector_memcpy(color, intersection->material.color);
+        gsl_vector_mul(color, scene->light.color);
+        gsl_vector_scale(color, light_power);
+        gsl_vector_scale(color, light_reflected);
+        ray_vec_clamp(color);
         ray_set_pixel(x, y, color, img);
       } else {
         gsl_vector *black = ray_create_vec3(0.0, 0.0, 0.0);

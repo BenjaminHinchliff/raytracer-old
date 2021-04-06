@@ -19,9 +19,13 @@
 #ifndef INCLUDED_RAY_MATERIAL_H
 #define INCLUDED_RAY_MATERIAL_H
 
+#include "gsl/gsl_vector.h"
+
 typedef struct RayMaterial {
   gsl_vector *color;
   double albedo;
 } RayMaterial;
+
+void ray_free_material(RayMaterial *material);
 
 #endif // ifndef INCLUDED_RAY_MATERIAL_H

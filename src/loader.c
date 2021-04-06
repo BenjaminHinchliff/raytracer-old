@@ -225,6 +225,23 @@ static bool get_scene_light(json_object *source, RayLight *light) {
     return false;
   }
 
+  gsl_vector *color = get_obj_rgb(light_obj, "color");
+  if (color == NULL) {
+    return false;
+  }
+
+  double intensity;
+  bool success = get_obj_double(light_obj, "intensity", &intensity);
+  if (!success) {
+    return false;
+  }
+
+  *light = (RayLight){
+      .direction = direction,
+      .color = color,
+      .intensity = intensity,
+  };
+
   return true;
 }
 
@@ -255,12 +272,19 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
     return false;
   }
 
+  RayLight light;
+  success = get_scene_light(root, &light);
+  if (!success) {
+    return false;
+  }
+
   *scene = (RayScene){
       .width = width,
       .height = height,
       .fov = fov,
       .num_objects = num_objects,
       .objects = objects,
+      .light = light,
   };
   json_object_put(root);
   return true;

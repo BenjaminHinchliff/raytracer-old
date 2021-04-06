@@ -23,4 +23,6 @@
 
 gsl_vector *ray_create_vec3(double x, double y, double z);
 
+void ray_vec_clamp(gsl_vector *vec);
+
 #endif // ifndef INCLUDED_RAY_VEC_UTILS_H

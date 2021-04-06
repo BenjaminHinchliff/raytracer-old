@@ -42,4 +42,7 @@ obj_free_fn get_obj_free_fn(enum RAY_OBJECT_TYPE t) {
                                         : free_error;
 }
 
-void ray_free_object(RayObject sphere) { get_obj_free_fn(sphere.type)(sphere); }
+void ray_free_object(RayObject sphere) {
+  get_obj_free_fn(sphere.type)(sphere);
+  ray_free_material(&sphere.material);
+}
