@@ -19,9 +19,9 @@
 #ifndef INCLUDED_RAY_IMG_UTILS_H
 #define INCLUDED_RAY_IMG_UTILS_H
 
-#include "color.h"
-
 #include <stdbool.h>
+
+#include "gsl/gsl_vector.h"
 
 // width must be greater than zero
 // height must be greater than zero
@@ -30,7 +30,7 @@ typedef struct RayImg {
   const int width;
   const int height;
   const int channels;
-  RayColor *const *const pixels;
+  gsl_vector **const *const pixels;
 } RayImg;
 
 // create a zero-initialized image with given specs
@@ -38,7 +38,7 @@ RayImg *ray_create_img(int width, int height, int channels);
 
 void ray_free_img(RayImg *img);
 
-void ray_set_pixel(int x, int y, const RayColor color, RayImg *img);
+void ray_set_pixel(int x, int y, gsl_vector *color, RayImg *img);
 
 bool ray_png_write(char const *filename, const RayImg *img);
 

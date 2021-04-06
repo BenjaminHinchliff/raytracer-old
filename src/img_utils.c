@@ -25,11 +25,11 @@
 #include "png.h" // png_*
 
 RayImg *ray_create_img(int width, int height, int channels) {
-  RayColor **pixels = malloc(height * (sizeof *pixels));
+  gsl_vector ***pixels = malloc(height * (sizeof *pixels));
   for (int y = 0; y < height; y += 1) {
     pixels[y] = malloc(width * (sizeof *pixels[y]));
     for (int x = 0; x < width; x += 1) {
-      pixels[y][x] = (RayColor){0, 0, 0};
+      pixels[y][x] = NULL;
     }
   }
   RayImg *img = malloc(sizeof *img);
@@ -45,13 +45,18 @@ RayImg *ray_create_img(int width, int height, int channels) {
 
 void ray_free_img(RayImg *img) {
   for (int y = 0; y < img->height; y += 1) {
+    for (int x = 0; x < img->width; x += 1) {
+      gsl_vector_free(img->pixels[y][x]);
+    }
     free(img->pixels[y]);
   }
   free((void *)img->pixels);
   free(img);
 }
 
-void ray_set_pixel(int x, int y, const RayColor color, RayImg *img) {
+void ray_set_pixel(int x, int y, gsl_vector *color, RayImg *img) {
+  assert(color->size == img->channels &&
+         "the number of components in the vector and channels must be equal");
   assert(x >= 0 && "x cannot be negative");
   assert(x < img->width && "x must be less than the image width");
   assert(y >= 0 && "y cannot be negative");
@@ -99,7 +104,19 @@ bool ray_png_write(char const *filename, const RayImg *img) {
 
   png_write_info(png_ptr, info_ptr);
 
-  png_write_image(png_ptr, (unsigned char **)img->pixels);
+  for (int y = 0; y < img->height; ++y) {
+    png_bytep row = malloc(img->width * img->channels * (sizeof *row));
+    for (int x = 0; x < img->width; ++x) {
+      gsl_vector *color = img->pixels[y][x];
+      assert(color != NULL && "null vector in image");
+      int row_x = img->channels * x;
+      row[row_x] = (unsigned char)(gsl_vector_get(color, 0) * UCHAR_MAX);
+      row[row_x + 1] = (unsigned char)(gsl_vector_get(color, 1) * UCHAR_MAX);
+      row[row_x + 2] = (unsigned char)(gsl_vector_get(color, 2) * UCHAR_MAX);
+    }
+    png_write_row(png_ptr, row);
+    free(row);
+  }
 
   png_write_end(png_ptr, NULL);
 
