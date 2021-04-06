@@ -16,12 +16,9 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 //  USA
 
-#include "ray/scene.h"
+#include "ray/light.h"
 
-void ray_free_scene(RayScene *scene) {
-  for (int i = 0; i < scene->num_objects; ++i) {
-    ray_free_object(scene->objects[i]);
-  }
-  ray_free_light(&scene->light);
-  free(scene->objects);
+void ray_free_light(RayLight *light) {
+  gsl_vector_free(light->direction);
+  gsl_vector_free(light->color);
 }

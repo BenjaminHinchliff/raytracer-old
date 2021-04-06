@@ -47,9 +47,10 @@ RayImg *ray_render_scene(const RayScene *scene) {
         gsl_vector_scale(light_direction, -1.0);
         double light_power = 0.0;
         gsl_blas_ddot(surface_normal, light_direction, &light_power);
+        gsl_vector_free(light_direction);
+        gsl_vector_free(surface_normal);
         light_power = light_power < 0.0 ? 0.0 : light_power;
         light_power *= scene->light.intensity;
-        gsl_vector_free(light_direction);
         double light_reflected = intersection->material.albedo / M_PI;
 
         gsl_vector *color = gsl_vector_alloc(3);

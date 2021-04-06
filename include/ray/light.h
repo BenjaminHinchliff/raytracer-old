@@ -27,4 +27,6 @@ typedef struct RayLight {
   double intensity;
 } RayLight;
 
+void ray_free_light(RayLight *light);
+
 #endif // ifndef INCLUDED_RAY_LIGHT_H

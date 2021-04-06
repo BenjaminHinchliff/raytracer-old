@@ -8,7 +8,8 @@ set(HDRS
     "ray/intersect.h"
     "ray/loader.h"
     "ray/normal.h"
-    "ray/material.h")
+    "ray/material.h"
+    "ray/light.h")
 
 set(HDRS_PREFIX "../include/")
 
@@ -24,7 +25,8 @@ set(SRCS
     "intersect.c"
     "loader.c"
     "normal.c"
-    "material.c")
+    "material.c"
+    "light.c")
 
 add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})
