@@ -5,6 +5,7 @@
 #include "ray/vec_utils.h"
 
 #define NUM_OBJECTS 4
+#define NUM_LIGHTS 2
 
 int main() {
   // NOTE: using from the stack instead of malloc causes undefined behavior
@@ -53,6 +54,22 @@ int main() {
       },
   };
   memcpy(objects, stackObjs, NUM_OBJECTS * (sizeof *objects));
+
+  RayLight *lights = malloc(NUM_LIGHTS * (sizeof *lights));
+  RayLight stackLights[NUM_LIGHTS] = {
+      {
+          .direction = ray_create_vec3(-0.5, -1.0, -1.0),
+          .color = ray_create_vec3(0.3, 0.8, 0.3),
+          .intensity = 10.0,
+      },
+      {
+          .direction = ray_create_vec3(0.5, -1.0, -1.0),
+          .color = ray_create_vec3(0.8, 0.3, 0.3),
+          .intensity = 10.0,
+      },
+  };
+  memcpy(lights, stackLights, NUM_LIGHTS * (sizeof *lights));
+
   RayScene scene = {
       .width = 800,
       .height = 600,
@@ -60,12 +77,8 @@ int main() {
       .background = ray_create_vec3(0.73, 0.92, 1.0),
       .num_objects = NUM_OBJECTS,
       .objects = objects,
-    //   .light =
-    //       {
-    //           .direction = ray_create_vec3(-0.25, -1.0, -1.0),
-    //           .color = ray_create_vec3(1.0, 1.0, 1.0),
-    //           .intensity = 20.0,
-    //       },
+      .num_lights = NUM_LIGHTS,
+      .lights = lights,
   };
   RayImg *img = ray_render_scene(&scene);
   ray_free_scene(&scene);
