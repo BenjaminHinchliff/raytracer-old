@@ -84,7 +84,7 @@ intersect_fn get_intersect_fn(enum RAY_OBJECT_TYPE t) {
 
 bool ray_intersects(const RayObject *plane, const RayRay *ray,
                     double *distance) {
-  get_intersect_fn(plane->type)(plane, ray, distance);
+  return get_intersect_fn(plane->type)(plane, ray, distance);
 }
 
 const RayObject *ray_closest_intersection(const RayObject *objects,
