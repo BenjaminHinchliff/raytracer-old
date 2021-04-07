@@ -28,6 +28,68 @@
 
 #define SHADOW_BIAS 1e-12
 
+static gsl_vector *get_hit_point(const RayRay ray, double hit_distance) {
+  gsl_vector *hit_point = gsl_vector_alloc(3);
+  gsl_vector_memcpy(hit_point, ray.direction);
+  gsl_vector_scale(hit_point, hit_distance);
+  gsl_vector_add(hit_point, ray.origin);
+  return hit_point;
+}
+
+static gsl_vector *get_direction_to_light(const RayLight *light) {
+  gsl_vector *dir_to_light = gsl_vector_alloc(3);
+  gsl_vector_memcpy(dir_to_light, light->direction);
+  gsl_vector_scale(dir_to_light, -1.0);
+  ray_vec_normalize(dir_to_light);
+  return dir_to_light;
+}
+
+static bool is_in_light(gsl_vector *surface_normal, gsl_vector *hit_point,
+                        gsl_vector *dir_to_light, const RayScene *scene) {
+  // find the shadow origin by adding a small fudge factor to the hit
+  // point (to prevent shadow acne)
+  gsl_vector *shadow_origin = gsl_vector_alloc(3);
+  gsl_vector_memcpy(shadow_origin, surface_normal);
+  gsl_vector_scale(shadow_origin, SHADOW_BIAS);
+  gsl_vector_add(shadow_origin, hit_point);
+  RayRay shadow_ray = {
+      .origin = shadow_origin,
+      .direction = dir_to_light,
+  };
+
+  // ray from hit point to light for shadows on other objects
+  const RayObject *in_light_intersect = ray_closest_intersection(
+      scene->objects, scene->num_objects, &shadow_ray, NULL);
+  // free allocated vectors
+  gsl_vector_free(shadow_origin);
+  return in_light_intersect == NULL;
+}
+
+// mathy stuff to calculate the light power
+// (cos of the angle between the surface normal and the vector to
+// light) (plus some stuff to handle clamp negative values and the
+// intensity)
+static double get_light_power(gsl_vector *surface_normal,
+                              gsl_vector *dir_to_light,
+                              double light_intensity) {
+  double light_power = 0.0;
+  gsl_blas_ddot(surface_normal, dir_to_light, &light_power);
+  light_power = light_power < 0.0 ? 0.0 : light_power;
+  light_power *= light_intensity;
+  return light_power;
+}
+
+gsl_vector *get_light_color_part(RayMaterial material, gsl_vector *light_color,
+                                 double light_power, double light_reflected) {
+  // calculate the color of the light
+  gsl_vector *color = gsl_vector_alloc(3);
+  gsl_vector_memcpy(color, material.color);
+  gsl_vector_mul(color, light_color);
+  gsl_vector_scale(color, light_power);
+  gsl_vector_scale(color, light_reflected);
+  return color;
+}
+
 RayImg *ray_render_scene(const RayScene *scene) {
   RayImg *img = ray_create_img(scene->width, scene->height, 3);
   for (int y = 0; y < scene->height; ++y) {
@@ -38,13 +100,8 @@ RayImg *ray_render_scene(const RayScene *scene) {
       const RayObject *intersection = ray_closest_intersection(
           scene->objects, scene->num_objects, &ray, &distance);
       if (intersection != NULL) {
-        // calculate the point at which the object hit
-        gsl_vector *hit_point = gsl_vector_alloc(3);
-        gsl_vector_memcpy(hit_point, ray.direction);
-        gsl_vector_scale(hit_point, distance);
-        gsl_vector_add(hit_point, ray.origin);
+        gsl_vector *hit_point = get_hit_point(ray, distance);
 
-        // get the surface normal for lighting
         gsl_vector *surface_normal =
             ray_surface_normal(intersection, hit_point);
 
@@ -53,54 +110,27 @@ RayImg *ray_render_scene(const RayScene *scene) {
           const RayLight *light = &scene->lights[l];
 
           // get the normal to a light by inverting the light direction
-          gsl_vector *dir_to_light = gsl_vector_alloc(3);
-          gsl_vector_memcpy(dir_to_light, light->direction);
-          gsl_vector_scale(dir_to_light, -1.0);
-          // normalize direction to light to prevent weird issues
-          double dir_len = gsl_blas_dnrm2(dir_to_light);
-          gsl_vector_scale(dir_to_light, 1.0 / dir_len);
+          gsl_vector *dir_to_light = get_direction_to_light(light);
 
-          // find the shadow origin by adding a small fudge factor to the hit
-          // point
-          gsl_vector *shadow_origin = gsl_vector_alloc(3);
-          gsl_vector_memcpy(shadow_origin, surface_normal);
-          gsl_vector_scale(shadow_origin, SHADOW_BIAS);
-          gsl_vector_add(shadow_origin, hit_point);
-          RayRay shadow_ray = {
-              .origin = shadow_origin,
-              .direction = dir_to_light,
-          };
-
-          // ray from hit point to light for shadows on other objects
-          const RayObject *in_light_intersect = ray_closest_intersection(
-              scene->objects, scene->num_objects, &shadow_ray, NULL);
-          bool in_light = in_light_intersect == NULL;
-
+          bool in_light =
+              is_in_light(surface_normal, hit_point, dir_to_light, scene);
           double light_intensity = in_light ? light->intensity : 0.0;
-          gsl_vector_free(shadow_origin);
 
-          // mathy stuff to calculate the light power
-          // (cos of the angle between the surface normal and the vector to
-          // light) (plus some stuff to handle clamp negative values and the
-          // intensity)
-          double light_power = 0.0;
-          gsl_blas_ddot(surface_normal, dir_to_light, &light_power);
+          double light_power =
+              get_light_power(surface_normal, dir_to_light, light_intensity);
+          
+          // light math is done so so is this
           gsl_vector_free(dir_to_light);
-          light_power = light_power < 0.0 ? 0.0 : light_power;
-          light_power *= light_intensity;
 
           // calculate amount of reflected light based of albedo
           double light_reflected = intersection->material.albedo / M_PI;
 
-          // calculate the color of the light
-          gsl_vector *part_color = gsl_vector_alloc(3);
-          gsl_vector_memcpy(part_color, intersection->material.color);
-          gsl_vector_mul(part_color, light->color);
-          gsl_vector_scale(part_color, light_power);
-          gsl_vector_scale(part_color, light_reflected);
+          gsl_vector *color_part =
+              get_light_color_part(intersection->material, light->color,
+                                   light_power, light_reflected);
           // add to net color
-          gsl_vector_add(color, part_color);
-          gsl_vector_free(part_color);
+          gsl_vector_add(color, color_part);
+          gsl_vector_free(color_part);
         }
 
         gsl_vector_free(surface_normal);
