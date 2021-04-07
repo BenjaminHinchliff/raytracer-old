@@ -18,16 +18,17 @@
 
 set(HDRS
     "ray/img_utils.h"
+    "ray/vec_utils.h"
     "ray/objects.h"
     "ray/scene.h"
     "ray/ray.h"
-    "ray/vec_utils.h"
-    "ray/render.h"
     "ray/intersect.h"
     "ray/loader.h"
     "ray/normal.h"
     "ray/material.h"
-    "ray/light.h")
+    "ray/light.h"
+    "ray/tex_coord.h"
+    "ray/render.h")
 
 set(HDRS_PREFIX "../include/")
 
@@ -38,13 +39,14 @@ set(SRCS
     "vec_utils.c"
     "objects.c"
     "ray.c"
-    "render.c"
     "scene.c"
     "intersect.c"
     "loader.c"
     "normal.c"
     "material.c"
-    "light.c")
+    "light.c"
+    "tex_coord.c"
+    "render.c")
 
 add_library(ray ${SRCS} ${HDRS})
 target_include_directories(ray PUBLIC ${HDRS_PREFIX})
