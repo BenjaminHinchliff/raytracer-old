@@ -27,4 +27,6 @@ void ray_vec_normalize(gsl_vector *vec);
 
 void ray_vec_clamp(gsl_vector *vec);
 
+void ray_vec3_cross(gsl_vector *u, gsl_vector *v);
+
 #endif // ifndef INCLUDED_RAY_VEC_UTILS_H

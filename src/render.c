@@ -26,8 +26,6 @@
 #include "ray/ray.h"
 #include "ray/vec_utils.h"
 
-#define SHADOW_BIAS 1e-12
-
 static gsl_vector *get_hit_point(const RayRay ray, double hit_distance) {
   gsl_vector *hit_point = gsl_vector_alloc(3);
   gsl_vector_memcpy(hit_point, ray.direction);
@@ -43,7 +41,7 @@ static bool is_in_light(gsl_vector *surface_normal, gsl_vector *hit_point,
   // point (to prevent shadow acne)
   gsl_vector *shadow_origin = gsl_vector_alloc(3);
   gsl_vector_memcpy(shadow_origin, surface_normal);
-  gsl_vector_scale(shadow_origin, SHADOW_BIAS);
+  gsl_vector_scale(shadow_origin, scene->shadow_bias);
   gsl_vector_add(shadow_origin, hit_point);
   RayRay shadow_ray = {
       .origin = shadow_origin,

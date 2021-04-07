@@ -18,6 +18,8 @@
 
 #include "ray/vec_utils.h"
 
+#include <assert.h>
+
 #include "gsl/gsl_blas.h"
 
 gsl_vector *ray_create_vec3(double x, double y, double z) {
@@ -41,4 +43,22 @@ void ray_vec_clamp(gsl_vector *vec) {
     comp = comp > 1.0 ? 1.0 : comp;
     gsl_vector_set(vec, i, comp);
   }
+}
+
+void ray_vec3_cross(gsl_vector *u, gsl_vector *v) {
+  assert(u->size == 3 && "u vector must be of size 3");
+  assert(v->size == 3 && "v vector must be of size 3");
+  double ux = gsl_vector_get(u, 0);
+  double uy = gsl_vector_get(u, 1);
+  double uz = gsl_vector_get(u, 2);
+  double vx = gsl_vector_get(v, 0);
+  double vy = gsl_vector_get(v, 1);
+  double vz = gsl_vector_get(v, 2);
+
+  double px = uy * vz - uz * vy;
+  double py = uz * vx - ux * vz;
+  double pz = ux * vy - uy * vx;
+  gsl_vector_set(u, 0, px);
+  gsl_vector_set(u, 1, py);
+  gsl_vector_set(u, 2, pz);
 }

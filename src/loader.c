@@ -323,6 +323,12 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
     return false;
   }
 
+  double shadow_bias;
+  success = get_obj_double(root, "shadow-bias", &shadow_bias);
+  if (!success) {
+    return false;
+  }
+
   gsl_vector *background = get_obj_rgb(root, "background");
   if (background == NULL) {
     return false;
@@ -344,6 +350,7 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
       .width = width,
       .height = height,
       .fov = fov,
+      .shadow_bias = shadow_bias,
       .background = background,
       .num_objects = num_objects,
       .objects = objects,
