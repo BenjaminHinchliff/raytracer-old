@@ -36,16 +36,9 @@ static gsl_vector *get_hit_point(const RayRay ray, double hit_distance) {
   return hit_point;
 }
 
-static gsl_vector *get_direction_to_light(const RayLight *light) {
-  gsl_vector *dir_to_light = gsl_vector_alloc(3);
-  gsl_vector_memcpy(dir_to_light, light->direction);
-  gsl_vector_scale(dir_to_light, -1.0);
-  ray_vec_normalize(dir_to_light);
-  return dir_to_light;
-}
-
 static bool is_in_light(gsl_vector *surface_normal, gsl_vector *hit_point,
-                        gsl_vector *dir_to_light, const RayScene *scene) {
+                        gsl_vector *dir_to_light, double light_distance,
+                        const RayScene *scene) {
   // find the shadow origin by adding a small fudge factor to the hit
   // point (to prevent shadow acne)
   gsl_vector *shadow_origin = gsl_vector_alloc(3);
@@ -58,11 +51,12 @@ static bool is_in_light(gsl_vector *surface_normal, gsl_vector *hit_point,
   };
 
   // ray from hit point to light for shadows on other objects
+  double intersect_distance = 0.0;
   const RayObject *in_light_intersect = ray_closest_intersection(
-      scene->objects, scene->num_objects, &shadow_ray, NULL);
+      scene->objects, scene->num_objects, &shadow_ray, &intersect_distance);
   // free allocated vectors
   gsl_vector_free(shadow_origin);
-  return in_light_intersect == NULL;
+  return in_light_intersect == NULL || intersect_distance > light_distance;
 }
 
 // mathy stuff to calculate the light power
@@ -109,16 +103,20 @@ RayImg *ray_render_scene(const RayScene *scene) {
         for (int l = 0; l < scene->num_lights; ++l) {
           const RayLight *light = &scene->lights[l];
 
-          // get the normal to a light by inverting the light direction
-          gsl_vector *dir_to_light = get_direction_to_light(light);
+          // get the normal to any light
+          gsl_vector *dir_to_light = ray_light_direction_from(light, hit_point);
 
-          bool in_light =
-              is_in_light(surface_normal, hit_point, dir_to_light, scene);
-          double light_intensity = in_light ? light->intensity : 0.0;
+          double light_distance = ray_light_distance(light, hit_point);
+
+          bool in_light = is_in_light(surface_normal, hit_point, dir_to_light,
+                                      light_distance, scene);
+
+          double light_intensity =
+              in_light ? ray_light_intensity(light, hit_point) : 0.0;
 
           double light_power =
               get_light_power(surface_normal, dir_to_light, light_intensity);
-          
+
           // light math is done so so is this
           gsl_vector_free(dir_to_light);
 

@@ -58,11 +58,13 @@ int main() {
   RayLight *lights = malloc(NUM_LIGHTS * (sizeof *lights));
   RayLight stackLights[NUM_LIGHTS] = {
       {
+          .type = RAY_LIGHT_TYPE_directional,
           .direction = ray_create_vec3(-0.5, -1.0, -1.0),
           .color = ray_create_vec3(0.3, 0.8, 0.3),
           .intensity = 10.0,
       },
       {
+          .type = RAY_LIGHT_TYPE_directional,
           .direction = ray_create_vec3(0.5, -1.0, -1.0),
           .color = ray_create_vec3(0.8, 0.3, 0.3),
           .intensity = 10.0,

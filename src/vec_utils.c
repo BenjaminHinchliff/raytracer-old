@@ -18,12 +18,20 @@
 
 #include "ray/vec_utils.h"
 
+#include "gsl/gsl_blas.h"
+
 gsl_vector *ray_create_vec3(double x, double y, double z) {
   gsl_vector *vec = gsl_vector_alloc(3);
   gsl_vector_set(vec, 0, x);
   gsl_vector_set(vec, 1, y);
   gsl_vector_set(vec, 2, z);
   return vec;
+}
+
+// I couldn't find a utility function for this in blas
+void ray_vec_normalize(gsl_vector *vec) {
+  double vec_len = gsl_blas_dnrm2(vec);
+  gsl_vector_scale(vec, 1.0 / vec_len);
 }
 
 void ray_vec_clamp(gsl_vector *vec) {

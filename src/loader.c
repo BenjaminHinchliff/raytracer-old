@@ -214,7 +214,36 @@ static RayObject *get_scene_objects(json_object *source, int *num_objects) {
   return objects;
 }
 
-static bool get_scene_light(json_object *light_obj, RayLight *light) {
+static bool get_scene_point_light(json_object *light_obj,
+                                        RayLight *light) {
+  gsl_vector *position = get_obj_vec3(light_obj, "position");
+  if (position == NULL) {
+    return false;
+  }
+
+  gsl_vector *color = get_obj_rgb(light_obj, "color");
+  if (color == NULL) {
+    return false;
+  }
+
+  double intensity;
+  bool success = get_obj_double(light_obj, "intensity", &intensity);
+  if (!success) {
+    return false;
+  }
+
+  *light = (RayLight){
+      .type = RAY_LIGHT_TYPE_point,
+      .position = position,
+      .color = color,
+      .intensity = intensity,
+  };
+
+  return true;
+}
+
+static bool get_scene_directional_light(json_object *light_obj,
+                                        RayLight *light) {
   gsl_vector *direction = get_obj_vec3(light_obj, "direction");
   if (direction == NULL) {
     return false;
@@ -232,12 +261,25 @@ static bool get_scene_light(json_object *light_obj, RayLight *light) {
   }
 
   *light = (RayLight){
+      .type = RAY_LIGHT_TYPE_directional,
       .direction = direction,
       .color = color,
       .intensity = intensity,
   };
 
   return true;
+}
+
+static bool get_scene_light(json_object *light_obj, RayLight *light) {
+  json_object *dir_obj = json_object_object_get(light_obj, "directional");
+  if (dir_obj != NULL) {
+    return get_scene_directional_light(dir_obj, light);
+  }
+  json_object *point_obj = json_object_object_get(light_obj, "point");
+  if (point_obj != NULL) {
+    return get_scene_point_light(point_obj, light);
+  }
+  return false;
 }
 
 static RayLight *get_scene_lights(json_object *source, int *num_lights) {

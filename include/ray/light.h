@@ -21,11 +21,30 @@
 
 #include "gsl/gsl_vector.h"
 
+typedef enum RAY_LIGHT_TYPE {
+  RAY_LIGHT_TYPE_directional,
+  RAY_LIGHT_TYPE_point,
+} RAY_LIGHT_TYPE;
+
 typedef struct RayLight {
-  gsl_vector *direction;
+  RAY_LIGHT_TYPE type;
+  union {
+    struct { // type = directional
+      gsl_vector *direction;
+    };
+    struct { // type = point
+      gsl_vector *position;
+    };
+  };
   gsl_vector *color;
   double intensity;
 } RayLight;
+
+gsl_vector *ray_light_direction_from(const RayLight *light, gsl_vector *hit_point);
+
+double ray_light_intensity(const RayLight *light, gsl_vector *hit_point);
+
+double ray_light_distance(const RayLight *light, gsl_vector *hit_point);
 
 void ray_free_light(RayLight *light);
 
