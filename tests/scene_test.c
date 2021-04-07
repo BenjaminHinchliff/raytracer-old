@@ -5,7 +5,7 @@
 #include "ray/vec_utils.h"
 
 #define NUM_OBJECTS 4
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 3
 
 int main() {
   // NOTE: using from the stack instead of malloc causes undefined behavior
@@ -58,15 +58,21 @@ int main() {
   RayLight *lights = malloc(NUM_LIGHTS * (sizeof *lights));
   RayLight stackLights[NUM_LIGHTS] = {
       {
-          .type = RAY_LIGHT_TYPE_directional,
-          .direction = ray_create_vec3(-0.5, -1.0, -1.0),
+          .type = RAY_LIGHT_TYPE_point,
+          .position = ray_create_vec3(-2.0, 10.0, -3.0),
           .color = ray_create_vec3(0.3, 0.8, 0.3),
-          .intensity = 10.0,
+          .intensity = 40000.0,
+      },
+      {
+          .type = RAY_LIGHT_TYPE_point,
+          .position = ray_create_vec3(0.25, 0.0, -2.0),
+          .color = ray_create_vec3(0.8, 0.3, 0.3),
+          .intensity = 1000.0,
       },
       {
           .type = RAY_LIGHT_TYPE_directional,
-          .direction = ray_create_vec3(0.5, -1.0, -1.0),
-          .color = ray_create_vec3(0.8, 0.3, 0.3),
+          .direction = ray_create_vec3(0.0, -1.0, -1.0),
+          .color = ray_create_vec3(1.0, 1.0, 1.0),
           .intensity = 10.0,
       },
   };
