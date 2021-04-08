@@ -90,7 +90,11 @@
             "texture": "texture.png"
           },
           "albedo": 0.18,
-          "surface": "diffuse"
+          "surface": {
+            "reflective": {
+              "reflectivity": 0.5
+            }
+          }
         }
       }
     }

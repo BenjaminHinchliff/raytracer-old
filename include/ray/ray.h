@@ -33,4 +33,7 @@ void ray_ray_free(RayRay ray);
 
 RayRay ray_create_prime_ray(int x, int y, const RayScene *scene);
 
+RayRay ray_create_reflection(gsl_vector *normal, gsl_vector *incident,
+                             gsl_vector *intersection, double bias);
+
 #endif // ifndef INCLUDED_RAY_RAY_H

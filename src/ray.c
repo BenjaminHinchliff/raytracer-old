@@ -48,3 +48,24 @@ RayRay ray_create_prime_ray(int x, int y, const RayScene *scene) {
   };
   return ray;
 }
+
+RayRay ray_create_reflection(gsl_vector *normal, gsl_vector *incident,
+                             gsl_vector *intersection, double bias) {
+  gsl_vector *origin = gsl_vector_alloc(3);
+  gsl_vector_memcpy(origin, normal);
+  gsl_vector_scale(origin, bias);
+  gsl_vector_add(origin, intersection);
+
+  double norm_dot_incident = 0.0;
+  gsl_blas_ddot(incident, normal, &norm_dot_incident);
+  gsl_vector *direction = gsl_vector_alloc(3);
+  gsl_vector_memcpy(direction, normal);
+  gsl_vector_scale(direction, -2.0 * norm_dot_incident);
+  gsl_vector_add(direction, incident);
+
+  RayRay ray = {
+      .origin = origin,
+      .direction = direction,
+  };
+  return ray;
+}

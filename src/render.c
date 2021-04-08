@@ -72,17 +72,103 @@ static double get_light_power(gsl_vector *surface_normal,
   return light_power;
 }
 
-gsl_vector *get_light_color_part(RayMaterial material, RayTexCoord tex_coord,
-                                 gsl_vector *light_color, double light_power,
-                                 double light_reflected) {
+gsl_vector *shade_diffuse_part(RayMaterial material, RayTexCoord tex_coord,
+                               gsl_vector *light_color, double light_power,
+                               double light_reflected) {
   // calculate the color of the light
   gsl_vector *color = gsl_vector_alloc(3);
-  gsl_vector *base_color = ray_coloration_color_get(&material.coloration, tex_coord);
+  gsl_vector *base_color =
+      ray_coloration_color_get(&material.coloration, tex_coord);
   gsl_vector_memcpy(color, base_color);
   gsl_vector_mul(color, light_color);
   gsl_vector_scale(color, light_power);
   gsl_vector_scale(color, light_reflected);
   return color;
+}
+
+gsl_vector *shade_diffuse(const RayScene *scene, const RayObject *intersection,
+                          gsl_vector *hit_point, gsl_vector *surface_normal) {
+  gsl_vector *color = gsl_vector_calloc(3);
+  for (int l = 0; l < scene->num_lights; ++l) {
+    const RayLight *light = &scene->lights[l];
+
+    // get the normal to any light
+    gsl_vector *dir_to_light = ray_light_direction_from(light, hit_point);
+
+    double light_distance = ray_light_distance(light, hit_point);
+
+    bool in_light = is_in_light(surface_normal, hit_point, dir_to_light,
+                                light_distance, scene);
+
+    double light_intensity =
+        in_light ? ray_light_intensity(light, hit_point) : 0.0;
+
+    double light_power =
+        get_light_power(surface_normal, dir_to_light, light_intensity);
+
+    // light math is done so so is this
+    gsl_vector_free(dir_to_light);
+
+    // calculate amount of reflected light based of albedo
+    double light_reflected = intersection->material.albedo / M_PI;
+
+    RayTexCoord tex_coord = ray_object_tex_coord(intersection, hit_point);
+
+    gsl_vector *color_part =
+        shade_diffuse_part(intersection->material, tex_coord, light->color,
+                           light_power, light_reflected);
+    // add to net color
+    gsl_vector_add(color, color_part);
+    gsl_vector_free(color_part);
+  }
+
+  // clamp between 0.0 & 1.0 to prevent problems with image output
+  ray_vec_clamp(color);
+  return color;
+}
+
+gsl_vector *cast_ray(const RayScene *scene, RayRay ray, int depth);
+
+gsl_vector *get_color(const RayScene *scene, const RayRay ray,
+                      const RayObject *intersection, double distance,
+                      int depth) {
+  gsl_vector *hit_point = get_hit_point(ray, distance);
+
+  gsl_vector *surface_normal = ray_surface_normal(intersection, hit_point);
+
+  gsl_vector *color =
+      shade_diffuse(scene, intersection, hit_point, surface_normal);
+  if (intersection->material.surface.type == RAY_SURFACE_TYPE_reflective) {
+    RayRay reflection_ray = ray_create_reflection(
+        surface_normal, ray.direction, hit_point, scene->shadow_bias);
+    double reflectivity = intersection->material.surface.reflectivity;
+    gsl_vector_scale(color, 1.0 - reflectivity);
+    gsl_vector *reflected = cast_ray(scene, reflection_ray, depth + 1);
+    gsl_vector_scale(reflected, reflectivity);
+    gsl_vector_add(color, reflected);
+    ray_ray_free(reflection_ray);
+    gsl_vector_free(reflected);
+  }
+
+  gsl_vector_free(surface_normal);
+  gsl_vector_free(hit_point);
+
+  return color;
+}
+
+gsl_vector *cast_ray(const RayScene *scene, RayRay ray, int depth) {
+  if (depth > scene->max_recursion_depth) {
+    return ray_create_vec3(0.0, 0.0, 0.0);
+  }
+
+  double distance = 0.0;
+  const RayObject *intersection = ray_closest_intersection(
+      scene->objects, scene->num_objects, &ray, &distance);
+  if (intersection != NULL) {
+    return get_color(scene, ray, intersection, distance, depth);
+  } else {
+    return ray_create_vec3(0.0, 0.0, 0.0);
+  }
 }
 
 RayImg *ray_render_scene(const RayScene *scene) {
@@ -95,50 +181,8 @@ RayImg *ray_render_scene(const RayScene *scene) {
       const RayObject *intersection = ray_closest_intersection(
           scene->objects, scene->num_objects, &ray, &distance);
       if (intersection != NULL) {
-        gsl_vector *hit_point = get_hit_point(ray, distance);
+        gsl_vector *color = get_color(scene, ray, intersection, distance, 0);
 
-        gsl_vector *surface_normal =
-            ray_surface_normal(intersection, hit_point);
-
-        gsl_vector *color = gsl_vector_calloc(3);
-        for (int l = 0; l < scene->num_lights; ++l) {
-          const RayLight *light = &scene->lights[l];
-
-          // get the normal to any light
-          gsl_vector *dir_to_light = ray_light_direction_from(light, hit_point);
-
-          double light_distance = ray_light_distance(light, hit_point);
-
-          bool in_light = is_in_light(surface_normal, hit_point, dir_to_light,
-                                      light_distance, scene);
-
-          double light_intensity =
-              in_light ? ray_light_intensity(light, hit_point) : 0.0;
-
-          double light_power =
-              get_light_power(surface_normal, dir_to_light, light_intensity);
-
-          // light math is done so so is this
-          gsl_vector_free(dir_to_light);
-
-          // calculate amount of reflected light based of albedo
-          double light_reflected = intersection->material.albedo / M_PI;
-
-          RayTexCoord tex_coord = ray_object_tex_coord(intersection, hit_point);
-
-          gsl_vector *color_part =
-              get_light_color_part(intersection->material, tex_coord, light->color,
-                                   light_power, light_reflected);
-          // add to net color
-          gsl_vector_add(color, color_part);
-          gsl_vector_free(color_part);
-        }
-
-        gsl_vector_free(surface_normal);
-        gsl_vector_free(hit_point);
-
-        // clamp between 0.0 & 1.0 to prevent problems with image output
-        ray_vec_clamp(color);
         ray_set_pixel(x, y, color, img);
       } else {
         gsl_vector *background = gsl_vector_alloc(3);
