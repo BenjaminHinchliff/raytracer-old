@@ -85,6 +85,7 @@ RayTexCoord plane_tex_coord(const RayObject *plane, gsl_vector *hit_point) {
       .y = y,
   };
 
+  gsl_vector_free(hit_vec);
   gsl_vector_free(x_axis);
   gsl_vector_free(y_axis);
 

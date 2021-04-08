@@ -88,7 +88,12 @@ RayImg *ray_read_img(const char *path) {
       double b = (double)row[row_x + 2] / UCHAR_MAX;
       img->pixels[y][x] = ray_create_vec3(r, g, b);
     }
+    free(row);
   }
+
+  png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+  fclose(infile);
+
   return img;
 }
 
