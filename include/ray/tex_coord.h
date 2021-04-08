@@ -19,15 +19,9 @@
 #ifndef INCLUDED_RAY_TEX_COORD_H
 #define INCLUDED_RAY_TEX_COORD_H
 
-#include "ray/objects.h"
-
-#include "gsl/gsl_vector.h"
-
 typedef struct RayTexCoord {
   double x;
   double y;
 } RayTexCoord;
-
-RayTexCoord ray_object_tex_coord(const RayObject *object, gsl_vector *hit_point);
 
 #endif // ifndef INCLUDED_RAY_TEX_COORD_H

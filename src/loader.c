@@ -99,25 +99,73 @@ static gsl_vector *get_obj_rgb(json_object *obj, const char *key) {
   return ray_create_vec3(r, g, b);
 }
 
+static bool get_obj_material_color_coloration(json_object *obj,
+                                              RayColoration *coloration) {
+  gsl_vector *color = get_obj_rgb(obj, "color");
+  if (color == NULL) {
+    return false;
+  }
+
+  *coloration = (RayColoration){
+      .type = RAY_COLORATION_TYPE_color,
+      .color = color,
+  };
+  return true;
+}
+
+static bool get_obj_material_texture_coloration(json_object *obj,
+                                                RayColoration *coloration) {
+  const char *tex_path = json_object_get_string(obj);
+  RayImg *img = ray_read_img(tex_path);
+
+  *coloration = (RayColoration){
+      .type = RAY_COLORATION_TYPE_texture,
+      .texture = img,
+  };
+
+  return true;
+}
+
+static bool get_obj_material_coloration(json_object *obj,
+                                        RayColoration *coloration) {
+  json_object *coloration_obj = json_object_object_get(obj, "coloration");
+  if (coloration_obj == NULL) {
+    return false;
+  }
+
+  json_object *color_obj = json_object_object_get(coloration_obj, "color");
+  if (color_obj != NULL) {
+    return get_obj_material_color_coloration(coloration_obj, coloration);
+  }
+
+  json_object *tex_obj = json_object_object_get(coloration_obj, "texture");
+  if (tex_obj != NULL) {
+    return get_obj_material_texture_coloration(tex_obj, coloration);
+  }
+
+  return false;
+}
+
 static bool get_obj_material(json_object *obj, RayMaterial *material) {
   json_object *material_obj = json_object_object_get(obj, "material");
   if (material_obj == NULL) {
     return false;
   }
 
-  gsl_vector *color = get_obj_rgb(material_obj, "color");
-  if (color == NULL) {
+  RayColoration coloration;
+  bool success = get_obj_material_coloration(material_obj, &coloration);
+  if (!success) {
     return false;
   }
 
   double albedo;
-  bool success = get_obj_double(material_obj, "albedo", &albedo);
+  success = get_obj_double(material_obj, "albedo", &albedo);
   if (!success) {
     return false;
   }
 
   *material = (RayMaterial){
-      .color = color,
+      .coloration = coloration,
       .albedo = albedo,
   };
 
@@ -214,8 +262,7 @@ static RayObject *get_scene_objects(json_object *source, int *num_objects) {
   return objects;
 }
 
-static bool get_scene_point_light(json_object *light_obj,
-                                        RayLight *light) {
+static bool get_scene_point_light(json_object *light_obj, RayLight *light) {
   gsl_vector *position = get_obj_vec3(light_obj, "position");
   if (position == NULL) {
     return false;

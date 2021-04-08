@@ -18,10 +18,12 @@
         },
         "radius": 1.0,
         "material": {
-          "color": {
-            "r": 0.2,
-            "g": 1.0,
-            "b": 0.2
+          "coloration": {
+            "color": {
+              "r": 0.2,
+              "g": 1.0,
+              "b": 0.2
+            }
           },
           "albedo": 0.18
         }
@@ -36,10 +38,8 @@
         },
         "radius": 2.0,
         "material": {
-          "color": {
-            "r": 0.2,
-            "g": 0.2,
-            "b": 1.0
+          "coloration": {
+            "texture": "texture.png"
           },
           "albedo": 0.28
         }
@@ -54,10 +54,12 @@
         },
         "radius": 2.25,
         "material": {
-          "color": {
-            "r": 1.0,
-            "g": 0.2,
-            "b": 0.2
+          "coloration": {
+            "color": {
+              "r": 1.0,
+              "g": 0.2,
+              "b": 0.2
+            }
           },
           "albedo": 0.08
         }
@@ -76,10 +78,8 @@
           "z": 0.0
         },
         "material": {
-          "color": {
-            "r": 0.4,
-            "g": 0.4,
-            "b": 0.4
+          "coloration": {
+            "texture": "texture.png"
           },
           "albedo": 0.18
         }

@@ -24,6 +24,7 @@
 #include "gsl/gsl_vector.h"
 
 #include "material.h"
+#include "tex_coord.h"
 
 enum RAY_OBJECT_TYPE {
   RAY_OBJECT_TYPE_sphere,
@@ -44,6 +45,9 @@ typedef struct RayObject {
   };
   RayMaterial material;
 } RayObject;
+
+RayTexCoord ray_object_tex_coord(const RayObject *object,
+                                 gsl_vector *hit_point);
 
 void ray_free_object(RayObject *sphere);
 

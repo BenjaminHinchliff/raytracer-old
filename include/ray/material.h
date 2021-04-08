@@ -19,10 +19,34 @@
 #ifndef INCLUDED_RAY_MATERIAL_H
 #define INCLUDED_RAY_MATERIAL_H
 
+#include "img_utils.h"
+#include "tex_coord.h"
+
 #include "gsl/gsl_vector.h"
 
+typedef enum RAY_COLORATION_TYPE {
+  RAY_COLORATION_TYPE_color,
+  RAY_COLORATION_TYPE_texture,
+} RAY_COLORATION_TYPE;
+
+typedef struct RayColoration {
+  RAY_COLORATION_TYPE type;
+  union {
+    struct { // type = color
+      gsl_vector *color;
+    };
+    struct { // type = texture
+      RayImg *texture;
+    };
+  };
+} RayColoration;
+
+gsl_vector *ray_coloration_color_get(RayColoration *, RayTexCoord hit_point);
+
+void ray_free_coloration(RayColoration *coloration);
+
 typedef struct RayMaterial {
-  gsl_vector *color;
+  RayColoration coloration;
   double albedo;
 } RayMaterial;
 

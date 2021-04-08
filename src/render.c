@@ -24,6 +24,7 @@
 #include "ray/intersect.h"
 #include "ray/normal.h"
 #include "ray/ray.h"
+#include "ray/tex_coord.h"
 #include "ray/vec_utils.h"
 
 static gsl_vector *get_hit_point(const RayRay ray, double hit_distance) {
@@ -71,11 +72,13 @@ static double get_light_power(gsl_vector *surface_normal,
   return light_power;
 }
 
-gsl_vector *get_light_color_part(RayMaterial material, gsl_vector *light_color,
-                                 double light_power, double light_reflected) {
+gsl_vector *get_light_color_part(RayMaterial material, RayTexCoord tex_coord,
+                                 gsl_vector *light_color, double light_power,
+                                 double light_reflected) {
   // calculate the color of the light
   gsl_vector *color = gsl_vector_alloc(3);
-  gsl_vector_memcpy(color, material.color);
+  gsl_vector *base_color = ray_coloration_color_get(&material.coloration, tex_coord);
+  gsl_vector_memcpy(color, base_color);
   gsl_vector_mul(color, light_color);
   gsl_vector_scale(color, light_power);
   gsl_vector_scale(color, light_reflected);
@@ -121,8 +124,10 @@ RayImg *ray_render_scene(const RayScene *scene) {
           // calculate amount of reflected light based of albedo
           double light_reflected = intersection->material.albedo / M_PI;
 
+          RayTexCoord tex_coord = ray_object_tex_coord(intersection, hit_point);
+
           gsl_vector *color_part =
-              get_light_color_part(intersection->material, light->color,
+              get_light_color_part(intersection->material, tex_coord, light->color,
                                    light_power, light_reflected);
           // add to net color
           gsl_vector_add(color, color_part);
