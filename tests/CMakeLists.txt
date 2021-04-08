@@ -33,6 +33,12 @@ add_executable(image_test "image_test.c")
 target_link_libraries(image_test PUBLIC ray)
 add_test(image_test image_test)
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/texture.png
+  ${CMAKE_CURRENT_BINARY_DIR}/texture.png
+  COPYONLY
+)
+
 add_executable(cross_test "cross_test.c")
 target_link_libraries(cross_test PUBLIC ray)
 add_test(cross_test cross_test)

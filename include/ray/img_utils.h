@@ -33,6 +33,8 @@ typedef struct RayImg {
   gsl_vector **const *const pixels;
 } RayImg;
 
+RayImg *ray_read_img(const char *path);
+
 // create a zero-initialized image with given specs
 RayImg *ray_create_img(int width, int height, int channels);
 

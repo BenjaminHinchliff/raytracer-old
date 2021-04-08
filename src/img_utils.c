@@ -24,6 +24,74 @@
 
 #include "png.h" // png_*
 
+#include "ray/vec_utils.h"
+
+RayImg *ray_read_img(const char *path) {
+  FILE *infile = fopen(path, "rb");
+  if (infile == NULL) {
+    fprintf(stderr, "failed to open file \"%s\"\n", path);
+    return NULL;
+  }
+
+  unsigned char sig[8];
+  fread(sig, 1, 8, infile);
+  if (!png_check_sig(sig, 8)) {
+    fprintf(stderr, "file passed to read_img wasn't a png (or is corrupted)\n");
+    return NULL;
+  }
+
+  png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  if (png_ptr == NULL) {
+    fprintf(stderr, "initialization of libpng failed\n");
+    return NULL;
+  }
+
+  png_infop info_ptr = png_create_info_struct(png_ptr);
+  if (info_ptr == NULL) {
+    fprintf(stderr, "initiliazation if info struct failed\n");
+    png_destroy_read_struct(&png_ptr, NULL, NULL);
+    return NULL;
+  }
+
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    fprintf(stderr, "something went wrong while reading png\n");
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+    return NULL;
+  }
+
+  png_init_io(png_ptr, infile);
+  png_set_sig_bytes(png_ptr, 8);
+  png_read_info(png_ptr, info_ptr);
+
+  unsigned int uwidth;
+  unsigned int uheight;
+  int bit_depth;
+  int color_type;
+  png_get_IHDR(png_ptr, info_ptr, &uwidth, &uheight, &bit_depth, &color_type, NULL, NULL, NULL);
+  assert(bit_depth == 8);
+  assert(uwidth <= INT_MAX);
+  assert(uheight <= INT_MAX);
+  assert(color_type == PNG_COLOR_TYPE_RGB && "color type must be rgb (no alpha)");
+
+  int width = (int)uwidth;
+  int height = (int)uheight;
+  int channels = 3;
+
+  RayImg *img = ray_create_img(width, height, channels);
+  for (int y = 0; y < height; ++y) {
+    png_bytep row = malloc(width * channels * (sizeof *row));
+    png_read_row(png_ptr, row, NULL);
+    for (int x = 0; x < width; ++x) {
+      int row_x = x * channels;
+      double r = (double)row[row_x] / UCHAR_MAX;
+      double g = (double)row[row_x + 1] / UCHAR_MAX;
+      double b = (double)row[row_x + 2] / UCHAR_MAX;
+      img->pixels[y][x] = ray_create_vec3(r, g, b);
+    }
+  }
+  return img;
+}
+
 RayImg *ray_create_img(int width, int height, int channels) {
   gsl_vector ***pixels = malloc(height * (sizeof *pixels));
   for (int y = 0; y < height; y += 1) {
