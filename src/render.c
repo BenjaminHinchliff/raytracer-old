@@ -18,6 +18,8 @@
 
 #include "ray/render.h"
 
+#include <pthread.h>
+
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_math.h"
 
@@ -171,11 +173,29 @@ gsl_vector *cast_ray(const RayScene *scene, RayRay ray, int depth) {
   }
 }
 
-RayImg *ray_render_scene(const RayScene *scene) {
-  RayImg *img = ray_create_img(scene->width, scene->height, 3);
-  for (int y = 0; y < scene->height; ++y) {
-    for (int x = 0; x < scene->width; ++x) {
-      RayRay ray = ray_create_prime_ray(x, y, scene);
+#define NUM_THREADS 12
+
+typedef struct ThreadImg {
+  pthread_mutex_t *lock;
+  RayImg *img;
+} ThreadImg;
+
+typedef struct RenderSceneRangeArgs {
+  const RayScene *scene;
+  ThreadImg *thread_img;
+  int start;
+  int range;
+} RenderSceneRangeArgs;
+
+void *ray_render_scene_range(void *voidArgs) {
+  RenderSceneRangeArgs *args = voidArgs;
+  const RayScene *scene = args->scene;
+  ThreadImg *thread_img = args->thread_img;
+  RayImg *img = ray_create_img(scene->width, args->range, 3);
+
+  for (int y = 0; y < args->range; y += 1) {
+    for (int x = 0; x < scene->width; x += 1) {
+      RayRay ray = ray_create_prime_ray(x, args->start + y, scene);
       // get the closest object to the ray
       double distance = 0.0;
       const RayObject *intersection = ray_closest_intersection(
@@ -192,5 +212,73 @@ RayImg *ray_render_scene(const RayScene *scene) {
       ray_ray_free(ray);
     }
   }
+
+  pthread_mutex_lock(thread_img->lock);
+
+  for (int y = 0; y < args->range; y += 1) {
+    for (int x = 0; x < scene->width; x += 1) {
+      thread_img->img->pixels[args->start + y][x] = img->pixels[y][x];
+      img->pixels[y][x] = NULL;
+    }
+  }
+  
+  pthread_mutex_unlock(thread_img->lock);
+
+  ray_free_img(img);
+
+  return NULL;
+}
+
+typedef struct ThreadCtx {
+  pthread_t thread;
+  RenderSceneRangeArgs *args;
+} ThreadCtx;
+
+RayImg *ray_render_scene(const RayScene *scene) {
+  pthread_mutex_t lock;
+
+  if (pthread_mutex_init(&lock, NULL) != 0) {
+    return NULL;
+  }
+
+  RayImg *img = ray_create_img(scene->width, scene->height, 3);
+  ThreadImg thread_img = {
+      .lock = &lock,
+      .img = img,
+  };
+
+  const int thread_range = scene->height / NUM_THREADS;
+  ThreadCtx threads[NUM_THREADS];
+  for (int t = 0; t < NUM_THREADS; t += 1) {
+    int adjusted_range = thread_range;
+    if (t == (NUM_THREADS - 1)) {
+      adjusted_range += (scene->height % NUM_THREADS);
+    }
+    int start = thread_range * t;
+    int range = adjusted_range;
+    RenderSceneRangeArgs *args = malloc(sizeof *args);
+    *args = (RenderSceneRangeArgs){
+        .scene = scene,
+        .thread_img = &thread_img,
+        .start = start,
+        .range = range,
+    };
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, &ray_render_scene_range, args) != 0) {
+      return NULL;
+    }
+    ThreadCtx thread_ctx = {
+        .thread = thread,
+        .args = args,
+    };
+    threads[t] = thread_ctx;
+  }
+
+  for (int t = 0; t < NUM_THREADS; t += 1) {
+    pthread_join(threads[t].thread, NULL);
+    free(threads[t].args);
+  }
+
+  pthread_mutex_destroy(&lock);
   return img;
 }

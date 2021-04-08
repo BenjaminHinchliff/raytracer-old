@@ -1,6 +1,6 @@
 {
-  "width": 800,
-  "height": 600,
+  "width": 7680,
+  "height": 4320,
   "fov": 90.0,
   "shadow-bias": 1e-12,
   "max-recursion-depth": 10,

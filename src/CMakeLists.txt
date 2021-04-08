@@ -58,6 +58,11 @@ if(LIBM)
     target_link_libraries(ray PUBLIC m)
 endif()
 
+# threads
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(ray PUBLIC Threads::Threads)
+
 find_package(PNG REQUIRED)
 target_link_libraries(ray PUBLIC PNG::PNG)
 
