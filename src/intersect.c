@@ -46,10 +46,16 @@ bool ray_sphere_intersects(const RayObject *sphere, const RayRay *ray,
 
   if (i0 < 0.0 && i1 < 0.0) {
     return false;
+  } else if (i0 < 0.0) {
+    *distance = i1;
+    return true;
+  } else if (i1 < 0.0) {
+    *distance = i0;
+    return true;
+  } else {
+    *distance = (i0 < i1 ? i0 : i1);
+    return true;
   }
-
-  *distance = (i0 < i1 ? i0 : i1);
-  return true;
 }
 
 bool ray_plane_intersects(const RayObject *plane, const RayRay *ray,
