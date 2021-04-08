@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "json-c/json.h"
 
@@ -146,6 +147,34 @@ static bool get_obj_material_coloration(json_object *obj,
   return false;
 }
 
+static bool get_surface_object(json_object *source, RaySurface *surface) {
+  json_object *surf_obj = json_object_object_get(source, "surface");
+  if (surf_obj == NULL) {
+    return false;
+  }
+
+  json_object *refl_obj = json_object_object_get(surf_obj, "reflective");
+  if (refl_obj != NULL) {
+    json_object *reflvy_obj = json_object_object_get(refl_obj, "reflectivity");
+    double reflectivity = json_object_get_double(reflvy_obj);
+    *surface = (RaySurface){
+        .type = RAY_SURFACE_TYPE_reflective,
+        .reflectivity = reflectivity,
+    };
+    return true;
+  }
+
+  const char *diff = json_object_get_string(surf_obj);
+  if (strcmp(diff, "diffuse") == 0) {
+    *surface = (RaySurface){
+        .type = RAY_SURFACE_TYPE_diffuse,
+    };
+    return true;
+  }
+
+  return false;
+}
+
 static bool get_obj_material(json_object *obj, RayMaterial *material) {
   json_object *material_obj = json_object_object_get(obj, "material");
   if (material_obj == NULL) {
@@ -164,9 +193,16 @@ static bool get_obj_material(json_object *obj, RayMaterial *material) {
     return false;
   }
 
+  RaySurface surface;
+  success = get_surface_object(material_obj, &surface);
+  if (!success) {
+    return false;
+  }
+
   *material = (RayMaterial){
       .coloration = coloration,
       .albedo = albedo,
+      .surface = surface,
   };
 
   return true;
@@ -376,6 +412,12 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
     return false;
   }
 
+  double max_recursion_depth;
+  success = get_obj_double(root, "max-recursion-depth", &max_recursion_depth);
+  if (!success) {
+    return false;
+  }
+
   gsl_vector *background = get_obj_rgb(root, "background");
   if (background == NULL) {
     return false;
@@ -398,6 +440,7 @@ bool ray_scene_from_file(const char *path, RayScene *scene) {
       .height = height,
       .fov = fov,
       .shadow_bias = shadow_bias,
+      .max_recursion_depth = max_recursion_depth,
       .background = background,
       .num_objects = num_objects,
       .objects = objects,

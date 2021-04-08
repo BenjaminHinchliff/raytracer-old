@@ -24,6 +24,22 @@
 
 #include "gsl/gsl_vector.h"
 
+typedef enum RAY_SURFACE_TYPE {
+  RAY_SURFACE_TYPE_diffuse,
+  RAY_SURFACE_TYPE_reflective,
+} RAY_SURFACE_TYPE;
+
+typedef struct RaySurface {
+  RAY_SURFACE_TYPE type;
+  union {
+    struct { // type = diffuse
+    };
+    struct { // type = reflective
+      double reflectivity;
+    };
+  };
+} RaySurface;
+
 typedef enum RAY_COLORATION_TYPE {
   RAY_COLORATION_TYPE_color,
   RAY_COLORATION_TYPE_texture,
@@ -48,6 +64,7 @@ void ray_free_coloration(RayColoration *coloration);
 typedef struct RayMaterial {
   RayColoration coloration;
   double albedo;
+  RaySurface surface;
 } RayMaterial;
 
 void ray_free_material(RayMaterial *material);
