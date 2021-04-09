@@ -36,4 +36,10 @@ RayRay ray_create_prime_ray(int x, int y, const RayScene *scene);
 RayRay ray_create_reflection(gsl_vector *normal, gsl_vector *incident,
                              gsl_vector *intersection, double bias);
 
+#define RAY_IOF_I 1.0
+
+bool ray_create_transmission(RayRay *ray, gsl_vector *normal,
+                             gsl_vector *incident, gsl_vector *intersection,
+                             double bias, double iof);
+
 #endif // ifndef INCLUDED_RAY_RAY_H

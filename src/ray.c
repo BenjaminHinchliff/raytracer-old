@@ -69,3 +69,53 @@ RayRay ray_create_reflection(gsl_vector *normal, gsl_vector *incident,
   };
   return ray;
 }
+
+bool ray_create_transmission(RayRay *ray, gsl_vector *normal,
+                             gsl_vector *incident, gsl_vector *intersection,
+                             double bias, double iof_t) {
+  gsl_vector *refrac_n = gsl_vector_alloc(3);
+  gsl_vector_memcpy(refrac_n, normal);
+  double iof_i = RAY_IOF_I;
+  double i_dot_n;
+  gsl_blas_ddot(incident, normal, &i_dot_n);
+  if (i_dot_n < 0.0) {
+    // outside surface
+    i_dot_n = -i_dot_n;
+  } else {
+    // inside so swap iofs and invert normal
+    gsl_vector_scale(refrac_n, -1.0);
+    iof_i = iof_t;
+    iof_t = RAY_IOF_I;
+  }
+
+  double iof = iof_i / iof_t;
+  double k = 1.0 - ((iof * iof) * (1.0 - (i_dot_n * i_dot_n)));
+  if (k < 0.0) {
+    gsl_vector_free(refrac_n);
+    return false;
+  }
+
+  gsl_vector *origin = gsl_vector_alloc(3);
+  gsl_vector_memcpy(origin, refrac_n);
+  gsl_vector_scale(origin, -bias);
+  gsl_vector_add(origin, intersection);
+
+  gsl_vector *direction = gsl_vector_alloc(3);
+  gsl_vector_memcpy(direction, refrac_n);
+  gsl_vector_scale(direction, i_dot_n);
+  gsl_vector_add(direction, incident);
+  gsl_vector_scale(direction, iof);
+
+  // repurpose refrac_n for last part of direction
+  gsl_vector_scale(refrac_n, sqrt(k));
+
+  gsl_vector_sub(direction, refrac_n);
+
+  *ray = (RayRay){
+      .origin = origin,
+      .direction = direction,
+  };
+
+  gsl_vector_free(refrac_n);
+  return true;
+}

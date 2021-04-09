@@ -26,9 +26,9 @@
 
 #include "ray/vec_utils.h"
 
-typedef gsl_vector *(*color_get_fn)(RayColoration *, RayTexCoord);
+typedef gsl_vector *(*color_get_fn)(const RayColoration *, RayTexCoord);
 
-gsl_vector *color_color_get(RayColoration *coloration, RayTexCoord tex_coord) {
+gsl_vector *color_color_get(const RayColoration *coloration, RayTexCoord tex_coord) {
   return coloration->color;
 }
 
@@ -42,7 +42,7 @@ int wrap(double val, int bound) {
   }
 }
 
-gsl_vector *texture_color_get(RayColoration *coloration,
+gsl_vector *texture_color_get(const RayColoration *coloration,
                               RayTexCoord tex_coord) {
   int tex_x = wrap(tex_coord.x, coloration->texture->width);
   assert(tex_x >= 0 && "tex x must be at least 0");
@@ -55,7 +55,7 @@ gsl_vector *texture_color_get(RayColoration *coloration,
   return coloration->texture->pixels[tex_y][tex_x];
 }
 
-gsl_vector *error_color_get(RayColoration *coloration, RayTexCoord tex_coord) {
+gsl_vector *error_color_get(const RayColoration *coloration, RayTexCoord tex_coord) {
   fprintf(stderr, "invalid coloration type in color get\n");
   exit(1);
 }
@@ -66,7 +66,7 @@ color_get_fn get_color_get_fn(RAY_COLORATION_TYPE t) {
                                               : error_color_get;
 }
 
-gsl_vector *ray_coloration_color_get(RayColoration *coloration,
+gsl_vector *ray_coloration_color_get(const RayColoration *coloration,
                                      RayTexCoord tex_coord) {
   return get_color_get_fn(coloration->type)(coloration, tex_coord);
 }

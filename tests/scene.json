@@ -56,20 +56,25 @@
       "sphere": {
         "center": {
           "x": 2.0,
-          "y": 2.0,
+          "y": 1.0,
           "z": -4.0
         },
-        "radius": 2.25,
+        "radius": 1.5,
         "material": {
           "coloration": {
             "color": {
               "r": 1.0,
-              "g": 0.2,
-              "b": 0.2
+              "g": 1.0,
+              "b": 1.0
             }
           },
-          "albedo": 0.08,
-          "surface": "diffuse"
+          "albedo": 0.18,
+          "surface": {
+            "refractive": {
+              "index": 1.5,
+              "transparency": 1.0
+            }
+          }
         }
       }
     },
@@ -78,7 +83,7 @@
         "point": {
           "x": 0.0,
           "y": -2.0,
-          "z": 0.0
+          "z": -5.0
         },
         "normal": {
           "x": 0.0,
@@ -95,6 +100,31 @@
               "reflectivity": 0.5
             }
           }
+        }
+      }
+    },
+    {
+      "plane": {
+        "point": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": -20.0
+        },
+        "normal": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": -1.0
+        },
+        "material": {
+          "coloration": {
+            "color": {
+              "r": 0.2,
+              "g": 0.3,
+              "b": 1.0
+            }
+          },
+          "albedo": 0.38,
+          "surface": "diffuse"
         }
       }
     }
@@ -128,21 +158,6 @@
           "b": 0.3
         },
         "intensity": 1000.0
-      }
-    },
-    {
-      "directional": {
-        "direction": {
-          "x": 0.0,
-          "y": -1.0,
-          "z": -1.0
-        },
-        "color": {
-          "r": 1.0,
-          "g": 1.0,
-          "b": 1.0
-        },
-        "intensity": 10.0
       }
     }
   ]

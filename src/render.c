@@ -18,6 +18,7 @@
 
 #include "ray/render.h"
 
+#include <assert.h>
 #include <pthread.h>
 
 #include "gsl/gsl_blas.h"
@@ -129,6 +130,31 @@ gsl_vector *shade_diffuse(const RayScene *scene, const RayObject *intersection,
   return color;
 }
 
+double fresnel(gsl_vector *incident, gsl_vector *normal, double index) {
+  double i_dot_n;
+  gsl_blas_ddot(incident, normal, &i_dot_n);
+  double iof_i = RAY_IOF_I;
+  double iof_t = index;
+  if (i_dot_n > 0.0) {
+    iof_i = iof_t;
+    iof_t = RAY_IOF_I;
+  }
+
+  double sin_t = (iof_i / iof_t) * sqrt(fmax(1.0 - (i_dot_n * i_dot_n), 0.0));
+  if (sin_t > 1.0) {
+    // total internal reflection
+    return 1.0;
+  } else {
+    double cos_t = sqrt(fmax(1.0 - (sin_t * sin_t), 0.0));
+    double cos_i = fabs(cos_t);
+    double r_s = ((iof_t * cos_i) - (iof_i * cos_t)) /
+                 ((iof_t * cos_i) + (iof_i * cos_t));
+    double r_p = ((iof_i * cos_i) - (iof_t * cos_t)) /
+                 ((iof_i * cos_i) + (iof_t * cos_t));
+    return (r_s * r_s + r_p * r_p) / 2.0;
+  }
+}
+
 gsl_vector *cast_ray(const RayScene *scene, RayRay ray, int depth);
 
 gsl_vector *get_color(const RayScene *scene, const RayRay ray,
@@ -138,9 +164,15 @@ gsl_vector *get_color(const RayScene *scene, const RayRay ray,
 
   gsl_vector *surface_normal = ray_surface_normal(intersection, hit_point);
 
-  gsl_vector *color =
-      shade_diffuse(scene, intersection, hit_point, surface_normal);
-  if (intersection->material.surface.type == RAY_SURFACE_TYPE_reflective) {
+  const RayMaterial *material = &intersection->material;
+
+  gsl_vector *color = NULL;
+  switch (material->surface.type) {
+  case RAY_SURFACE_TYPE_diffuse:
+    color = shade_diffuse(scene, intersection, hit_point, surface_normal);
+    break;
+  case RAY_SURFACE_TYPE_reflective: {
+    color = shade_diffuse(scene, intersection, hit_point, surface_normal);
     RayRay reflection_ray = ray_create_reflection(
         surface_normal, ray.direction, hit_point, scene->shadow_bias);
     double reflectivity = intersection->material.surface.reflectivity;
@@ -150,6 +182,49 @@ gsl_vector *get_color(const RayScene *scene, const RayRay ray,
     gsl_vector_add(color, reflected);
     ray_ray_free(reflection_ray);
     gsl_vector_free(reflected);
+  } break;
+  case RAY_SURFACE_TYPE_refractive: {
+    double kr = fresnel(ray.direction, surface_normal, material->surface.index);
+
+    RayTexCoord tex_coord = ray_object_tex_coord(intersection, hit_point);
+    gsl_vector *surface_color =
+        ray_coloration_color_get(&material->coloration, tex_coord);
+
+    gsl_vector *refraction_color = NULL;
+    if (kr < 1.0) {
+      RayRay transmission_ray;
+      bool success = ray_create_transmission(
+          &transmission_ray, surface_normal, ray.direction, hit_point,
+          scene->shadow_bias, material->surface.index);
+      assert(success && "transmission ray creation must succeed (or "
+                        "something's wrong with fernel stuff)");
+      refraction_color = cast_ray(scene, transmission_ray, depth + 1);
+      ray_ray_free(transmission_ray);
+    } else {
+      refraction_color = ray_create_vec3(0.0, 0.0, 0.0);
+    }
+    gsl_vector_scale(refraction_color, 1.0 - kr);
+
+    RayRay reflection_ray = ray_create_reflection(
+        surface_normal, ray.direction, hit_point, scene->shadow_bias);
+    gsl_vector *reflection_color = cast_ray(scene, reflection_ray, depth + 1);
+    ray_ray_free(reflection_ray);
+    gsl_vector_scale(reflection_color, kr);
+
+    color = gsl_vector_alloc(3);
+    gsl_vector_memcpy(color, reflection_color);
+    gsl_vector_add(color, refraction_color);
+    // gsl_vector_memcpy(color, refraction_color);
+    gsl_vector_scale(color, material->surface.transparency);
+    gsl_vector_mul(color, surface_color);
+
+    gsl_vector_free(refraction_color);
+    gsl_vector_free(reflection_color);
+  } break;
+  default:
+    fprintf(stderr, "invalid surface type in render\n");
+    exit(1);
+    break;
   }
 
   gsl_vector_free(surface_normal);
@@ -173,7 +248,7 @@ gsl_vector *cast_ray(const RayScene *scene, RayRay ray, int depth) {
   }
 }
 
-#define NUM_THREADS 12
+#define NUM_THREADS 1
 
 typedef struct ThreadImg {
   pthread_mutex_t *lock;
@@ -197,18 +272,8 @@ void *ray_render_scene_range(void *voidArgs) {
     for (int x = 0; x < scene->width; x += 1) {
       RayRay ray = ray_create_prime_ray(x, args->start + y, scene);
       // get the closest object to the ray
-      double distance = 0.0;
-      const RayObject *intersection = ray_closest_intersection(
-          scene->objects, scene->num_objects, &ray, &distance);
-      if (intersection != NULL) {
-        gsl_vector *color = get_color(scene, ray, intersection, distance, 0);
-
-        ray_set_pixel(x, y, color, img);
-      } else {
-        gsl_vector *background = gsl_vector_alloc(3);
-        gsl_vector_memcpy(background, scene->background);
-        ray_set_pixel(x, y, background, img);
-      }
+      gsl_vector *color = cast_ray(scene, ray, 0);
+      ray_set_pixel(x, y, color, img);
       ray_ray_free(ray);
     }
   }
@@ -221,7 +286,7 @@ void *ray_render_scene_range(void *voidArgs) {
       img->pixels[y][x] = NULL;
     }
   }
-  
+
   pthread_mutex_unlock(thread_img->lock);
 
   ray_free_img(img);

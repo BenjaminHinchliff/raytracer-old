@@ -164,6 +164,26 @@ static bool get_surface_object(json_object *source, RaySurface *surface) {
     return true;
   }
 
+  json_object *refr_obj = json_object_object_get(surf_obj, "refractive");
+  if (refr_obj != NULL) {
+    double index;
+    bool success = get_obj_double(refr_obj, "index", &index);
+    if (!success) {
+      return false;
+    }
+    double transparency;
+    success = get_obj_double(refr_obj, "transparency", &transparency);
+    if (!success) {
+      return false;
+    }
+    *surface = (RaySurface){
+        .type = RAY_SURFACE_TYPE_refractive,
+        .index = index,
+        .transparency = transparency,
+    };
+    return true;
+  }
+
   const char *diff = json_object_get_string(surf_obj);
   if (strcmp(diff, "diffuse") == 0) {
     *surface = (RaySurface){

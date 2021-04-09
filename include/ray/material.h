@@ -27,6 +27,7 @@
 typedef enum RAY_SURFACE_TYPE {
   RAY_SURFACE_TYPE_diffuse,
   RAY_SURFACE_TYPE_reflective,
+  RAY_SURFACE_TYPE_refractive
 } RAY_SURFACE_TYPE;
 
 typedef struct RaySurface {
@@ -36,6 +37,10 @@ typedef struct RaySurface {
     };
     struct { // type = reflective
       double reflectivity;
+    };
+    struct { // type = refractive
+      double index;
+      double transparency;
     };
   };
 } RaySurface;
@@ -57,7 +62,7 @@ typedef struct RayColoration {
   };
 } RayColoration;
 
-gsl_vector *ray_coloration_color_get(RayColoration *, RayTexCoord hit_point);
+gsl_vector *ray_coloration_color_get(const RayColoration *, RayTexCoord hit_point);
 
 void ray_free_coloration(RayColoration *coloration);
 
